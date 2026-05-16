@@ -18,7 +18,7 @@ This repository provides a starter structure for an in-house goal-setting and tr
    ```
 
 2. Review and update `.env` values as needed.
-   - `API_IMAGE` and `WEB_IMAGE` must point to valid, pullable images.
+   - `API_IMAGE` and `WEB_IMAGE` must point to valid, pullable images (replace sample GHCR paths with your own registry tags or local image tags).
    - Replace all `CHANGE_ME` secret values before running outside local development.
 
 3. Start all services:
