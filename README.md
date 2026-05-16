@@ -22,8 +22,10 @@ This repository provides a starter structure for an in-house goal-setting and tr
 3. Start all services:
 
    ```bash
-   docker compose up --build
+   docker compose up
    ```
+
+   Use `docker compose up --build` only when building local images during development.
 
 4. Stop services:
 
@@ -44,7 +46,7 @@ Key groups:
 
 ## Quickstart
 
-After running `docker compose up --build`:
+After running `docker compose up`:
 
 - API: `http://localhost:4000`
 - Web: `http://localhost:3000`
