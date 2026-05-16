@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info:
+  title: In-House Goal Setting & Tracking API
+  version: 1.0.0
+  description: API specifications for the AtomQuest Hackathon goal portal.
+servers:
+  - url: /api/v1
+paths:
+  /goals:
+    post:
+      summary: Create a new Goal Sheet
+      tags: [Goals]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalSheet'
+      responses:
+        '201':
+          description: Goal sheet successfully submitted.
+        '400':
+          description: Validation error (e.g., weightage != 100%).
+  /goals/{id}/approve:
+    put:
+      summary: L1 Manager approves a Goal Sheet
+      tags: [Goals, Manager]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Goals locked and approved.
+  /check-ins:
+    post:
+      summary: Log Quarterly Achievement
+      tags: [Check-Ins]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckIn'
+      responses:
+        '201':
+          description: Check-in recorded successfully.
+components:
+  schemas:
+    GoalSheet:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        goals:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              thrust_area: { type: string }
+              uom: { type: string, enum: ['Numeric', 'Percentage', 'Timeline', 'Zero'] }
+              target: { type: number }
+              weightage: { type: number, minimum: 10 }
+    CheckIn:
+      type: object
+      properties:
+        goal_id: { type: string }
+        quarter: { type: string, enum: ['Q1', 'Q2', 'Q3', 'Q4'] }
+        actual_achievement: { type: number }
+        status: { type: string, enum: ['Not Started', 'On Track', 'Completed'] }
