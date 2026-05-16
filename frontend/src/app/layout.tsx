@@ -1,24 +1,26 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "./globals.css"; // Ensure Tailwind directives are here
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Goal Management Portal",
-  description: "Enterprise Performance & Goal Tracking",
+  title: "In-House Goal Setting & Tracking Portal",
+  description: "AtomQuest Hackathon 1.0 Enterprise Solution",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
-        {/* If you add a global Toast provider or Modal portal later, it goes here */}
-        {children}
+    <html lang="en" className="h-full bg-slate-50 text-slate-900">
+      <body className={`${inter.className} h-full antialiased`}>
+        {/* Mock Global Auth Provider wrapper layout */}
+        <div className="min-h-screen flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );
