@@ -46,9 +46,9 @@ Key groups:
 
 After running `docker compose up --build`:
 
-- API: `http://localhost:${API_PORT}`
-- Web: `http://localhost:${WEB_PORT}`
-- Postgres: `localhost:${POSTGRES_PORT}`
-- Redis: `localhost:${REDIS_PORT}`
+- API: `http://localhost:4000`
+- Web: `http://localhost:3000`
+- Postgres: `localhost:5432`
+- Redis: `localhost:6379`
 
 Use `architecture.png` as the submitted architecture diagram artifact.
