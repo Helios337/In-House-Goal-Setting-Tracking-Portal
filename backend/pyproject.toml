@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "fastapi-backend"
+version = "0.1.0"
+description = "FastAPI application for goal tracking and management"
+authors = ["Aditya Gupta <akg1082004@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+sqlalchemy = "^2.0.29"
+alembic = "^1.13.1"
+pydantic = {extras = ["email"], version = "^2.6.4"}
+pydantic-settings = "^2.2.1"
+psycopg2-binary = "^2.9.9" # Assuming PostgreSQL
+python-jose = {extras = ["cryptography"], version = "^3.3.0"} # For JWT auth
+passlib = {extras = ["bcrypt"], version = "^1.7.4"} # For password hashing
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
