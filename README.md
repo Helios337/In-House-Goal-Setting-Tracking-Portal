@@ -1,4 +1,4 @@
-# In-House Goal Setting Tracking Portal
+# In-House Goal-Setting-Tracking Portal
 
 ## Overview
 
