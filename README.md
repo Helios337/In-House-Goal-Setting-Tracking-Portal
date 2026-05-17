@@ -232,7 +232,7 @@ Note:
 - Migrations are configured via `backend/alembic.ini` and `backend/alembic/`.
 
 ### Frontend
-- Frontend scripts are currently defined in `frontend/package.josn` (note the current filename).
+- Frontend npm scripts are defined in the frontend package manifest file.
 - Main app source is in `frontend/src`.
 - Next.js config is in `frontend/next.config.js`.
 
@@ -258,8 +258,8 @@ Note:
   - `JWT_SECRET=CHANGE_ME`
 
 ### 4) Frontend local npm commands fail due missing `package.json`
-- The repository currently contains `frontend/package.josn` (filename spelling).
-- Rename it to `package.json` if you want direct local `npm` execution.
+- Ensure a valid `frontend/package.json` exists before running npm commands.
+- If missing, correct the frontend manifest filename to `package.json`.
 
 ### 5) Backend local startup issues
 - Ensure Python dependencies are installed from backend dependency definitions before running local server.
