@@ -38,11 +38,11 @@ export default function GoalSheetApprovalInspector() {
   const processApproval = () => {
     const sum = calculateTotalWeight();
     if (sum !== 100) {
-      setErrorLog(`Cannot Approve: The current total weight allocation stands at ${sum}%. System strictly enforces exactly 100%.`); [cite: 17, 71]
+      setErrorLog(`Cannot Approve: The current total weight allocation stands at ${sum}%. System strictly enforces exactly 100%.`);
       return;
     }
     if (goals.some(g => g.weightage < 10)) {
-      setErrorLog("Cannot Approve: Individual row validation failure. A minimum threshold weightage of 10% is required per item."); [cite: 18, 71]
+      setErrorLog("Cannot Approve: Individual row validation failure. A minimum threshold weightage of 10% is required per item.");
       return;
     }
     setErrorLog(null);
@@ -51,7 +51,7 @@ export default function GoalSheetApprovalInspector() {
   };
 
   const processReworkRejection = () => {
-    alert("Goal tracking sheet routed back to employee repository with an inline rework request flag."); [cite: 21]
+    alert("Goal tracking sheet routed back to employee repository with an inline rework request flag.");
     router.push("/manager/dashboard");
   };
 
