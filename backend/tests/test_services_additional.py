@@ -41,8 +41,8 @@ def test_lock_goal_sheet_approve_and_audit_log(db, mock_user):
 
 
 def test_push_kpi_fails_when_parent_goal_missing(db):
-    manager = models.User(email="manager-missing-goal@ex.com", hashed_password="pwd")
-    subordinate = models.User(email="sub-missing-goal@ex.com", hashed_password="pwd")
+    manager = models.User(email="manager-missing-goal@ex.com", hashed_password="fakehash")
+    subordinate = models.User(email="sub-missing-goal@ex.com", hashed_password="fakehash")
     db.add_all([manager, subordinate])
     db.commit()
     db.add(models.OrgHierarchy(manager_id=manager.id, employee_id=subordinate.id))
@@ -56,8 +56,8 @@ def test_push_kpi_fails_when_parent_goal_missing(db):
 
 
 def test_push_kpi_fails_when_subordinate_has_no_draft_sheet(db):
-    manager = models.User(email="manager-no-sheet@ex.com", hashed_password="pwd")
-    subordinate = models.User(email="sub-no-sheet@ex.com", hashed_password="pwd")
+    manager = models.User(email="manager-no-sheet@ex.com", hashed_password="fakehash")
+    subordinate = models.User(email="sub-no-sheet@ex.com", hashed_password="fakehash")
     db.add_all([manager, subordinate])
     db.commit()
     db.add(models.OrgHierarchy(manager_id=manager.id, employee_id=subordinate.id))
@@ -80,8 +80,8 @@ def test_push_kpi_fails_when_subordinate_has_no_draft_sheet(db):
 
 
 def test_build_csv_report_includes_subordinate_goal_rows(db):
-    manager = models.User(email="manager-report@ex.com", hashed_password="pwd")
-    subordinate = models.User(email="sub-report@ex.com", hashed_password="pwd")
+    manager = models.User(email="manager-report@ex.com", hashed_password="fakehash")
+    subordinate = models.User(email="sub-report@ex.com", hashed_password="fakehash")
     db.add_all([manager, subordinate])
     db.commit()
 
