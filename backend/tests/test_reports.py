@@ -32,7 +32,7 @@ def test_completion_stats_aggregation(db):
 
 def test_csv_export_endpoint(client, db, mock_user):
     # Mocking manager role logic
-    response = client.get("/reports/export")
+    response = client.get("/api/v1/reports/export")
     
     # Assuming the stubbed router logic from earlier is returning a CSV
     assert response.status_code == 200

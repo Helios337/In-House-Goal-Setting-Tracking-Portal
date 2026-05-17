@@ -119,6 +119,13 @@ def test_create_goal_respects_updating_goal_id_exclusion(db, mock_user):
         updating_goal_id=existing_goal.id,
     )
 
+    with pytest.raises(HTTPException):
+        goal_service.validate_weightage(
+            db,
+            goal_sheet_id=sheet.id,
+            new_goal_weight=30,
+        )
+
 
 def test_compute_uom_score_raises_for_unsupported_type():
     with pytest.raises(ValueError):
