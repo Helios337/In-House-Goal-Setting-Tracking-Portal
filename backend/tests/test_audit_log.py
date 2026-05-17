@@ -12,7 +12,7 @@ def test_create_goal_triggers_audit_log(client, db, mock_user):
         "weightage": 50,
         "goal_sheet_id": sheet.id
     }
-    response = client.post("/goals/", json=payload)
+    response = client.post("/api/v1/goals/", json=payload)
     assert response.status_code == 200
     goal_id = response.json()["id"]
 

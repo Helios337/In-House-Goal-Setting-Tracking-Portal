@@ -15,11 +15,16 @@ pnpm-debug.log*
 dist/
 build/
 coverage/
+.coverage
 .next/
 out/
 
 # Dependency directories
 node_modules/
+
+# Python cache artifacts
+__pycache__/
+*.py[cod]
 
 # IDE and OS files
 .DS_Store

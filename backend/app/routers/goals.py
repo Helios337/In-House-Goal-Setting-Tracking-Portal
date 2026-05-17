@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app import schemas, models, dependencies
+from app.services import goal_service
 
 router = APIRouter()
 
@@ -12,7 +13,7 @@ def create_goal(
     current_user = Depends(dependencies.get_current_active_user)
 ):
     """Create new goal in a goal sheet."""
-    pass
+    return goal_service.create_goal(db, goal_in=goal_in, owner_id=current_user.id)
 
 @router.get("/", response_model=List[schemas.GoalOut])
 def read_goals(
