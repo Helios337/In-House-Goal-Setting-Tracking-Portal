@@ -279,7 +279,7 @@ Note:
 On this repository snapshot:
 - `docker compose config` ✅ works after copying `.env.example` to `.env`
 - `backend` local test command via `pytest` ❌ unavailable in clean environment (`pytest: command not found`)
-- `frontend` local lint via `npm run lint` ❌ fails because `frontend/package.json` is not present (file is `package.josn`)
+- `frontend` local lint via `npm run lint` ❌ fails because `frontend/package.json` is not present in this snapshot
 
 ---
 
