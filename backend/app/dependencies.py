@@ -58,7 +58,7 @@ def require_manager_role(
     current_user: models.User = Depends(get_current_active_user),
 ):
     """Role guard checking for manager privileges."""
-    role_name = (current_user.role.name if current_user.role else "").upper()
+    role_name = str(getattr(current_user.role, "name", "")).upper()
     if role_name not in {"MANAGER", "ADMIN"}:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user

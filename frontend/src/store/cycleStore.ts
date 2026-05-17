@@ -15,7 +15,7 @@ interface CycleState {
   endDate: string | null;
 
   // Actions
-  setCycle: (window: CycleWindow, isOpen: boolean, start?: string, end?: string) => void;
+  setCycle: (window: CycleWindow, isOpen: boolean, start?: string | null, end?: string | null) => void;
   closeCycle: () => void;
 }
 
