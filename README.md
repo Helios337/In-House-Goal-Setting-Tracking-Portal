@@ -257,7 +257,7 @@ Note:
   - `POSTGRES_PASSWORD=CHANGE_ME`
   - `JWT_SECRET=CHANGE_ME`
 
-### 4) Frontend local npm commands fail due missing `package.json`
+### 4) Frontend local npm commands fail due to missing `package.json`
 - Ensure a valid `frontend/package.json` exists before running npm commands.
 - If missing, correct the frontend manifest filename to `package.json`.
 
@@ -276,7 +276,7 @@ Note:
 
 ## Current Validation Status
 
-On this repository snapshot:
+On this repository snapshot (captured in a clean CI-like environment on 2026-05-17):
 - `docker compose config` ✅ works after copying `.env.example` to `.env`
 - `backend` local test command via `pytest` ❌ unavailable in clean environment (`pytest: command not found`)
 - `frontend` local lint via `npm run lint` ❌ fails because `frontend/package.json` is not present in this snapshot
