@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import type { AxiosResponse } from "axios";
 import { api } from "@/lib/api";
 
 interface AuditLogEntry {
@@ -9,7 +10,7 @@ interface AuditLogEntry {
   details: string;
 }
 
-const fetcher = (url: string) => api.get(url).then((res) => res.data);
+const fetcher = (url: string) => api.get(url).then((res: AxiosResponse) => res.data);
 
 export function useAuditLog(page: number = 1, limit: number = 20, targetUserId?: string) {
   let endpoint = `/audit-logs?page=${page}&limit=${limit}`;

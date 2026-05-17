@@ -31,7 +31,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         {...props}
-      );
-    };
+      >
+        {isLoading ? <Spinner size="sm" className="mr-2" /> : null}
+        {children}
+      </button>
+    );
+  }
 );
 Button.displayName = "Button";

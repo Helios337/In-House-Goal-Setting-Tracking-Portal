@@ -14,8 +14,8 @@ export default function AdminGovernanceDashboard() {
   return (
     <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
       <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold text-slate-900">Systemic Completion & Compliance Deck</h1> [cite: 43]
-        <p className="text-sm text-slate-500 mt-1">Real-time macro analytics across organizational departments[cite: 43, 65].</p>
+        <h1 className="text-2xl font-bold text-slate-900">Systemic Completion & Compliance Deck</h1>
+        <p className="text-sm text-slate-500 mt-1">Real-time macro analytics across organizational departments.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -31,8 +31,8 @@ export default function AdminGovernanceDashboard() {
 
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
         <div>
-          <h3 className="text-base font-bold text-slate-800">Cross-Departmental Tracking Status Heatmap</h3> [cite: 43, 65]
-          <p className="text-xs text-slate-400">Tracks employee cycles closed against total structural dependencies[cite: 43].</p>
+          <h3 className="text-base font-bold text-slate-800">Cross-Departmental Tracking Status Heatmap</h3>
+          <p className="text-xs text-slate-400">Tracks employee cycles closed against total structural dependencies.</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {departments.map((dept, idx) => (

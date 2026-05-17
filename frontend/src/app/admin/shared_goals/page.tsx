@@ -14,7 +14,7 @@ export default function SharedKPIBroadcastWorkspace() {
       alert("Please configure the target criteria fields fully before broadcasting.");
       return;
     }
-    alert(`Departmental KPI broadcasted to group "${targetGroup}" as a read-only parameter.`); [cite: 24, 25]
+    alert(`Departmental KPI broadcasted to group "${targetGroup}" as a read-only parameter.`);
     setKpiTitle("");
     setKpiTarget("");
   };
@@ -25,7 +25,7 @@ export default function SharedKPIBroadcastWorkspace() {
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Share2 className="text-indigo-600 h-5 w-5" /> Cascading Goal Alignment Console
         </h1>
-        <p className="text-sm text-slate-500 mt-1">Broadcast high-level corporate KPIs directly into multiple child goal sheets[cite: 24].</p>
+        <p className="text-sm text-slate-500 mt-1">Broadcast high-level corporate KPIs directly into multiple child goal sheets.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

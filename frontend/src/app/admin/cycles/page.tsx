@@ -5,9 +5,9 @@ import { Calendar, ToggleLeft, ToggleRight, Clock, Plus } from "lucide-react";
 
 export default function CycleTemporalConfiguration() {
   const [windows, setWindows] = useState([
-    { period: "Phase 1 — Goal Setting", windowOpens: "1st May", activity: "Goal Creation, Submission & Approval", active: true }, [cite: 37]
-    { period: "Q1 Check-in", windowOpens: "July", activity: "Progress Update — Planned vs. Actual", active: false }, [cite: 37]
-    { period: "Q2 Check-in", windowOpens: "October", activity: "Progress Update — Planned vs. Actual", active: false } [cite: 37]
+    { period: "Phase 1 — Goal Setting", windowOpens: "1st May", activity: "Goal Creation, Submission & Approval", active: true },
+    { period: "Q1 Check-in", windowOpens: "July", activity: "Progress Update — Planned vs. Actual", active: false },
+    { period: "Q2 Check-in", windowOpens: "October", activity: "Progress Update — Planned vs. Actual", active: false }
   ]);
 
   const toggleTargetWindowStatus = (index: number) => {
@@ -37,11 +37,11 @@ export default function CycleTemporalConfiguration() {
                   <Calendar className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-base">{w.period}</h3> [cite: 37]
+                  <h3 className="font-bold text-slate-800 text-base">{w.period}</h3>
                   <p className="text-xs text-slate-500 mt-0.5 font-medium flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Targeted Trigger Window: {w.windowOpens} [cite: 37]
+                    <Clock className="h-3 w-3" /> Targeted Trigger Window: {w.windowOpens}
                   </p>
-                  <span className="text-xs text-slate-400 mt-1 block">Expected Workflow: {w.activity}</span> [cite: 37]
+                  <span className="text-xs text-slate-400 mt-1 block">Expected Workflow: {w.activity}</span>
                 </div>
               </div>
 

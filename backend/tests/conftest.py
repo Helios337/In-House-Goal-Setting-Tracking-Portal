@@ -46,8 +46,12 @@ def client(db, mock_user):
     def override_get_current_active_user():
         return mock_user
 
+    def override_require_manager_role():
+        return mock_user
+
     app.dependency_overrides[dependencies.get_db] = override_get_db
     app.dependency_overrides[dependencies.get_current_active_user] = override_get_current_active_user
+    app.dependency_overrides[dependencies.require_manager_role] = override_require_manager_role
     
     with TestClient(app) as c:
         yield c

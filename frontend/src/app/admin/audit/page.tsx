@@ -5,8 +5,8 @@ import { ShieldCheck, Search, ShieldAlert, Terminal } from "lucide-react";
 
 export default function AuditTrailComplianceViewer() {
   const [logs] = useState([
-    { timestamp: "2026-05-16 14:22:05", operator: "HR_Admin_01", targetUser: "Sarah Jenkins (EMP-902)", action: "Admin Override Post-Lock Modification", metadata: "Altered target weight baseline from 30% to 40% due to L1 alignment request." }, [cite: 44]
-    { timestamp: "2026-05-15 09:12:44", operator: "System_Daemon", targetUser: "All Engineers", action: "Shared Cascade KPI Synchronization Triggered", metadata: "Propagated core availability metric across 140 nested sheets automatically." } [cite: 26]
+    { timestamp: "2026-05-16 14:22:05", operator: "HR_Admin_01", targetUser: "Sarah Jenkins (EMP-902)", action: "Admin Override Post-Lock Modification", metadata: "Altered target weight baseline from 30% to 40% due to L1 alignment request." },
+    { timestamp: "2026-05-15 09:12:44", operator: "System_Daemon", targetUser: "All Engineers", action: "Shared Cascade KPI Synchronization Triggered", metadata: "Propagated core availability metric across 140 nested sheets automatically." }
   ]);
 
   return (
@@ -15,7 +15,7 @@ export default function AuditTrailComplianceViewer() {
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Terminal className="text-slate-700 h-5 w-5" /> Immutable Verification Logs
         </h1>
-        <p className="text-sm text-slate-500 mt-1">Tracks and flags data adjustments made after locking target sheets[cite: 44].</p>
+        <p className="text-sm text-slate-500 mt-1">Tracks and flags data adjustments made after locking target sheets.</p>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">

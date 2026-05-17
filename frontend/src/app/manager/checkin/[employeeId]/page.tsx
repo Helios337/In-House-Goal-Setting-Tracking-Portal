@@ -18,9 +18,9 @@ export default function QuarterlyCheckInModule() {
   const computeProgressScore = (type: string, target: number, actual: number): string => {
     if (target === 0 || !actual) return "0%";
     switch (type) {
-      case "Min": return `${Math.round((actual / target) * 100)}%`; [cite: 34]
-      case "Max": return `${Math.round((target / actual) * 100)}%`; [cite: 34]
-      case "Zero": return actual === 0 ? "100%" : "0%"; [cite: 34]
+      case "Min": return `${Math.round((actual / target) * 100)}%`;
+      case "Max": return `${Math.round((target / actual) * 100)}%`;
+      case "Zero": return actual === 0 ? "100%" : "0%";
       default: return "0%";
     }
   };
@@ -28,7 +28,7 @@ export default function QuarterlyCheckInModule() {
   const handleSubmitCheckinLog = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentary.trim()) {
-      alert("A documented check-in summary is required before committing the state entry."); [cite: 32]
+      alert("A documented check-in summary is required before committing the state entry.");
       return;
     }
     alert("Evaluation snapshot and structured discussion feedback recorded successfully."); 
@@ -52,12 +52,12 @@ export default function QuarterlyCheckInModule() {
             <div key={idx} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded">Formula Model: {m.formulaType}</span> [cite: 34]
+                  <span className="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded">Formula Model: {m.formulaType}</span>
                   <h3 className="font-semibold text-slate-800 mt-1.5">{m.title}</h3>
                 </div>
                 <div className="text-right">
                   <span className="text-slate-400 block text-xs uppercase font-bold tracking-wider">System Score</span> 
-                  <span className="text-lg font-bold text-indigo-600">{computeProgressScore(m.formulaType, m.target, m.actual)}</span> [cite: 34]
+                  <span className="text-lg font-bold text-indigo-600">{computeProgressScore(m.formulaType, m.target, m.actual)}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-3 text-sm">
@@ -72,7 +72,7 @@ export default function QuarterlyCheckInModule() {
           <form onSubmit={handleSubmitCheckinLog} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4 sticky top-6">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 border-b border-slate-100 pb-2">
               <MessageSquare className="h-4 w-4 text-indigo-500" />
-              <span>Discussion Documentation Log</span> [cite: 32]
+              <span>Discussion Documentation Log</span>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Check-in Feedback Comment</label> 

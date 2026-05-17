@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import type { AxiosResponse } from "axios";
 import { api } from "@/lib/api";
 
 interface TeamMemberGoals {
@@ -8,7 +9,7 @@ interface TeamMemberGoals {
   goals: any[];
 }
 
-const fetcher = (url: string) => api.get(url).then((res) => res.data);
+const fetcher = (url: string) => api.get(url).then((res: AxiosResponse) => res.data);
 
 export function useTeamGoals(managerId?: string) {
   // If managerId is not passed, backend infers it from the NextAuth token
