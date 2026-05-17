@@ -21,6 +21,10 @@ out/
 # Dependency directories
 node_modules/
 
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+
 # IDE and OS files
 .DS_Store
 Thumbs.db

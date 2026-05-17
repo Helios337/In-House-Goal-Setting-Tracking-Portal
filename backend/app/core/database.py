@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker
 from app.config import settings
+from app.models import Base
 
 # Pool pre ping ensures connections are alive before using them
 engine = create_engine(
@@ -11,6 +12,3 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# All SQLAlchemy models will inherit from this Base
-Base = declarative_base()

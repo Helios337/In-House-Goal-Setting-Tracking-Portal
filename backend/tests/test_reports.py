@@ -1,9 +1,17 @@
 from app.services import report_service
 from app import models
+from datetime import datetime, timezone
 
 def test_completion_stats_aggregation(db):
     # Create test cycle
-    db.add(models.CheckinCycle(id=1, name="FY24", start_date="2024-01-01", end_date="2024-12-31"))
+    db.add(
+        models.CheckinCycle(
+            id=1,
+            name="FY24",
+            start_date=datetime(2024, 1, 1, tzinfo=timezone.utc),
+            end_date=datetime(2024, 12, 31, tzinfo=timezone.utc),
+        )
+    )
     
     # Create two sheets: one approved, one draft
     db.add(models.GoalSheet(id=10, user_id=1, cycle_id=1, status="APPROVED"))
