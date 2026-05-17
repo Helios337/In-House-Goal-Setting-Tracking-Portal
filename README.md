@@ -135,7 +135,7 @@ Optional for local (non-container) development:
 
 1. Open terminal in repository root:
    ```bash
-   cd /home/runner/work/In-House-Goal-Setting-Tracking-Portal/In-House-Goal-Setting-Tracking-Portal
+   cd <repository-root>
    ```
 
 2. Create runtime env file from template:
@@ -156,7 +156,7 @@ Optional for local (non-container) development:
 
 ### Step 1: Move to repository root
 ```bash
-cd /home/runner/work/In-House-Goal-Setting-Tracking-Portal/In-House-Goal-Setting-Tracking-Portal
+cd <repository-root>
 ```
 
 ### Step 2: Prepare environment file
@@ -232,7 +232,7 @@ Note:
 - Migrations are configured via `backend/alembic.ini` and `backend/alembic/`.
 
 ### Frontend
-- Frontend scripts are currently defined in `frontend/package.josn`.
+- Frontend scripts are currently defined in `frontend/package.josn` (note the current filename).
 - Main app source is in `frontend/src`.
 - Next.js config is in `frontend/next.config.js`.
 
