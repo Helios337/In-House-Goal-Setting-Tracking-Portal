@@ -13,6 +13,7 @@ engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/login/access-token")
+MANAGER_ACCESS_ROLES = {"MANAGER", "ADMIN"}
 
 def get_db() -> Generator:
     """Dependency to get a database session."""
@@ -58,7 +59,11 @@ def require_manager_role(
     current_user: models.User = Depends(get_current_active_user),
 ):
     """Role guard checking for manager privileges."""
-    role_name = str(getattr(current_user.role, "name", "")).upper()
-    if role_name not in {"MANAGER", "ADMIN"}:
+    role = current_user.role
+    if role is None or not hasattr(role, "name"):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    role_name = str(role.name).upper()
+    if role_name not in MANAGER_ACCESS_ROLES:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
