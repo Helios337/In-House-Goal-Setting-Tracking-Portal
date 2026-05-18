@@ -7,6 +7,8 @@ A production-ready internal platform for goal-setting, manager approvals, quarte
 ![Node](https://img.shields.io/badge/node-18+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
 
+![Architecture](./docs/architecture.png)
+
 ---
 
 ## Table of contents
@@ -46,6 +48,8 @@ A production-ready internal platform for goal-setting, manager approvals, quarte
 ---
 
 ## Architecture
+
+The diagram above shows the high-level system layout. The same architecture rendered as a Mermaid diagram (for accessibility and version-controlled edits):
 
 ```mermaid
 flowchart LR
