@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup question
+    url: https://github.com/Helios337/In-House-Goal-Setting-Tracking-Portal/blob/main/Readme.md#troubleshooting
+    about: Most setup problems are covered in the README troubleshooting matrix.
+  - name: Architecture / data model question
+    url: https://github.com/Helios337/In-House-Goal-Setting-Tracking-Portal/blob/main/docs/architecture.md
+    about: Read the architecture doc first — diagrams cover most "how does X work?" questions.

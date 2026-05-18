@@ -1,0 +1,24 @@
+# CODEOWNERS — automatic review assignment
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Order matters: later patterns take precedence over earlier ones.
+
+# Default owner for everything in the repo
+*                       @Helios337
+
+# Backend
+/backend/                @Helios337
+/backend/alembic/        @Helios337
+/backend/tests/          @Helios337
+
+# Frontend
+/frontend/               @Helios337
+
+# Infrastructure & CI
+/infra/                  @Helios337
+/.github/                @Helios337
+/docker-compose.yml      @Helios337
+
+# Docs
+/docs/                   @Helios337
+/Readme.md               @Helios337
