@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+<path d="M0,0 L8,3 L0,6 Z" fill="#475569"/>
+</marker>
+<pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+<path d="M 24 0 L 0 0 0 24" fill="none" stroke="#E2E8F0" stroke-width="0.5"/>
+</pattern>
+</defs>
+<rect width="1920" height="1080" fill="#F8FAFC"/>
+<rect width="1920" height="1080" fill="url(#grid)"/>
+<text x="960.0" y="56" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#0F172A" text-anchor="middle">In-House Goal Setting &amp; Tracking Portal</text>
+<text x="960.0" y="88" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" fill="#64748B" text-anchor="middle">FastAPI + Next.js 15 + PostgreSQL + Redis  ·  Real-time SSE</text>
+<rect x="40" y="120" width="400" height="880" rx="16" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.5"/>
+<text x="60" y="156" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#4F46E5" text-anchor="start">CLIENT</text>
+<rect x="460" y="120" width="400" height="880" rx="16" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.5"/>
+<text x="480" y="156" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#4F46E5" text-anchor="start">EDGE</text>
+<rect x="880" y="120" width="400" height="880" rx="16" fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
+<text x="900" y="156" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#059669" text-anchor="start">APPLICATION</text>
+<rect x="1300" y="120" width="580" height="880" rx="16" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+<text x="1320" y="156" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#D97706" text-anchor="start">DATA &amp; EXTERNAL</text>
+<rect x="70" y="200" width="340" height="72" rx="12" fill="#FFFFFF" stroke="#4F46E5" stroke-width="1.5"/>
+<text x="90" y="232" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#0F172A" text-anchor="start">Browser</text>
+<text x="90" y="256" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="start">User session + UI</text>
+<rect x="70" y="300" width="340" height="100" rx="12" fill="#FFFFFF" stroke="#4F46E5" stroke-width="1.5"/>
+<text x="90" y="340" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="500" fill="#0F172A"><tspan x="90" dy="0">Next.js 15 App</tspan><tspan x="90" dy="18">(React, Tailwind, SWR)</tspan></text>
+<rect x="490" y="200" width="340" height="88" rx="12" fill="#FFFFFF" stroke="#4F46E5" stroke-width="1.5"/>
+<text x="510" y="236" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">NextAuth</text>
+<text x="510" y="258" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="start">/api/auth/*</text>
+<rect x="490" y="310" width="340" height="88" rx="12" fill="#FFFFFF" stroke="#4F46E5" stroke-width="1.5"/>
+<text x="510" y="346" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">SSE proxy</text>
+<text x="510" y="368" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="start">/api/events/stream</text>
+<rect x="490" y="420" width="340" height="88" rx="12" fill="#FFFFFF" stroke="#4F46E5" stroke-width="1.5"/>
+<text x="510" y="456" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F172A" text-anchor="start">URL rewrite</text>
+<text x="510" y="478" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="start">/api/v1/* → backend</text>
+<text x="510" y="560" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#4F46E5" text-anchor="start">Next.js server :3000</text>
+<rect x="910" y="200" width="340" height="76" rx="12" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+<text x="930" y="232" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">REST routers</text>
+<text x="930" y="252" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="500" fill="#64748B" text-anchor="start">/api/v1/*</text>
+<rect x="910" y="292" width="340" height="76" rx="12" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+<text x="930" y="324" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Auth + RBAC</text>
+<text x="930" y="344" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="500" fill="#64748B" text-anchor="start">JWT dependencies</text>
+<rect x="910" y="384" width="340" height="76" rx="12" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+<text x="930" y="416" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Domain services</text>
+<text x="930" y="436" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="500" fill="#64748B" text-anchor="start">goal · checkin · achievement</text>
+<rect x="910" y="476" width="340" height="76" rx="12" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+<text x="930" y="508" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Event bus</text>
+<text x="930" y="528" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="500" fill="#64748B" text-anchor="start">Redis publish</text>
+<rect x="910" y="568" width="340" height="76" rx="12" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+<text x="930" y="600" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">APScheduler</text>
+<text x="930" y="620" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="500" fill="#64748B" text-anchor="start">hourly escalations</text>
+<text x="930" y="680" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669" text-anchor="start">FastAPI :8000</text>
+<ellipse cx="1430.0" cy="232.0" rx="100.0" ry="12.0" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/><rect x="1330" y="232.0" width="200" height="76.0" fill="#FFFBEB" stroke="none"/><line x1="1330" y1="232.0" x2="1330" y2="308.0" stroke="#D97706" stroke-width="1.5"/><line x1="1530" y1="232.0" x2="1530" y2="308.0" stroke="#D97706" stroke-width="1.5"/><ellipse cx="1430.0" cy="308.0" rx="100.0" ry="12.0" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+<text x="1430" y="265" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="middle">PostgreSQL 16</text>
+<text x="1430" y="288" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="500" fill="#64748B" text-anchor="middle">core schema</text>
+<ellipse cx="1430.0" cy="372.0" rx="100.0" ry="12.0" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/><rect x="1330" y="372.0" width="200" height="76.0" fill="#FFFBEB" stroke="none"/><line x1="1330" y1="372.0" x2="1330" y2="448.0" stroke="#D97706" stroke-width="1.5"/><line x1="1530" y1="372.0" x2="1530" y2="448.0" stroke="#D97706" stroke-width="1.5"/><ellipse cx="1430.0" cy="448.0" rx="100.0" ry="12.0" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+<text x="1430" y="405" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="middle">Redis 7</text>
+<text x="1430" y="428" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="500" fill="#64748B" text-anchor="middle">pub/sub channels</text>
+<rect x="1330" y="520" width="520" height="200" rx="12" fill="#F1F5F9" stroke="#475569" stroke-width="1.5"/>
+<text x="1350" y="548" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569" text-anchor="start">External (optional)</text>
+<rect x="1350" y="580" width="480" height="36" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+<text x="1368" y="604" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" text-anchor="start">Microsoft Entra ID</text>
+<rect x="1350" y="624" width="480" height="36" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+<text x="1368" y="648" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" text-anchor="start">SendGrid</text>
+<rect x="1350" y="668" width="480" height="36" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+<text x="1368" y="692" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" text-anchor="start">MS Teams webhook</text>
+<line x1="410" y1="236" x2="490" y2="236" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="830" y1="280" x2="910" y2="280" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="1080" y1="520" x2="1330" y2="270" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="1080" y1="540" x2="1330" y2="410" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="1250" y1="300" x2="1250" y2="520" stroke="#475569" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+<text x="1880" y="1052" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="end">v0.1.0 · MIT</text>
+</svg>

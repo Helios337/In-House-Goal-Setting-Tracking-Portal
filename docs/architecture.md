@@ -4,6 +4,8 @@ This document describes the **as-built** architecture of the In-House Goal Setti
 
 All diagrams below render natively on GitHub (Mermaid).
 
+> **README banner:** [`architecture.png`](./architecture.png) is exported from [`architecture-overview.mmd`](./architecture-overview.mmd). Regenerate with `python3 docs/generate_architecture_svg.py` then `npx @resvg/resvg-js` (see script header).
+
 ---
 
 ## 1. System overview

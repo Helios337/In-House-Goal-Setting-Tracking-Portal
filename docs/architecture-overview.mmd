@@ -1,0 +1,49 @@
+%% System overview — exported to docs/architecture.png for README
+flowchart LR
+    subgraph Client["Client (browser)"]
+        UI["Next.js 15 App<br/>(React, Tailwind, SWR)"]
+    end
+
+    subgraph Edge["Next.js server (port 3000)"]
+        NA["NextAuth route<br/>/api/auth/[...nextauth]"]
+        SSE["SSE proxy<br/>/api/events/stream"]
+        RW["URL rewrite<br/>/api/v1/* → backend"]
+    end
+
+    subgraph Backend["FastAPI backend (port 8000)"]
+        API["REST routers<br/>/api/v1/*"]
+        DEP["Auth + RBAC<br/>dependencies"]
+        SVC["Domain services<br/>(goal, checkin, achievement,<br/>shared-goal, report,<br/>escalation, notification)"]
+        SCHED["APScheduler<br/>(hourly escalations)"]
+        BUS["Event bus<br/>(Redis publish)"]
+    end
+
+    subgraph Data["Stateful services"]
+        PG[("PostgreSQL 16<br/>core schema")]
+        RD[("Redis 7<br/>pub/sub channels")]
+    end
+
+    subgraph External["External (optional)"]
+        EID["Microsoft Entra ID<br/>(OIDC)"]
+        SG["SendGrid"]
+        TM["Microsoft Teams<br/>webhook"]
+    end
+
+    UI -->|axios| RW
+    UI -->|NextAuth flows| NA
+    UI -->|EventSource| SSE
+
+    RW --> API
+    NA -->|/auth/sso<br/>token exchange| API
+    SSE -->|forwards Bearer JWT| API
+
+    API --> DEP --> SVC
+    SVC --> PG
+    SVC --> BUS --> RD
+    RD -->|subscribe| API
+
+    SCHED --> SVC
+    NA -. id_token .-> EID
+    DEP -. JWKS .-> EID
+    SVC -. email .-> SG
+    SVC -. card .-> TM
