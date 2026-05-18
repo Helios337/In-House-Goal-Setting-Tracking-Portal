@@ -25,6 +25,14 @@ node_modules/
 # Python cache artifacts
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3
 
 # IDE and OS files
 .DS_Store

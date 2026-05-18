@@ -38,4 +38,4 @@ def test_csv_export_endpoint(client, db, mock_user):
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/csv; charset=utf-8"
     assert "attachment; filename=report.csv" in response.headers["content-disposition"]
-    assert "User,Goal,Quarter,Progress" in response.text
+    assert "Employee Email,Goal Title,Weightage,Status" in response.text

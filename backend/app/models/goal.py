@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Float
 from sqlalchemy.orm import relationship
 from . import Base
 
@@ -25,7 +25,9 @@ class Goal(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    weightage = Column(Integer, default=100)
+    weightage = Column(Integer, default=10)
+    uom_type = Column(String, nullable=True)
+    target_value = Column(Float, nullable=True)
     
     # Foreign Keys
     owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)

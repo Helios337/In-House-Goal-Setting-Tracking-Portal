@@ -13,7 +13,7 @@ interface AuditLogEntry {
 const fetcher = (url: string) => api.get(url).then((res: AxiosResponse) => res.data);
 
 export function useAuditLog(page: number = 1, limit: number = 20, targetUserId?: string) {
-  let endpoint = `/audit-logs?page=${page}&limit=${limit}`;
+  let endpoint = `/audit/logs?page=${page}&limit=${limit}`;
   if (targetUserId) {
     endpoint += `&userId=${targetUserId}`;
   }

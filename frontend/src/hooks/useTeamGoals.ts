@@ -15,7 +15,9 @@ export function useTeamGoals(managerId?: string) {
   // If managerId is not passed, backend infers it from the NextAuth token
   const endpoint = managerId ? `/team-goals?managerId=${managerId}` : `/team-goals`;
 
-  const { data, error, isLoading, mutate } = useSWR<TeamMemberGoals[]>(endpoint, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<TeamMemberGoals[]>(endpoint, fetcher, {
+    refreshInterval: 30000,
+  });
 
   return {
     teamData: data || [],

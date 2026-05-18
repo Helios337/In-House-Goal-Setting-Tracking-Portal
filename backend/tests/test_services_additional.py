@@ -12,30 +12,62 @@ def test_check_sheet_lock_raises_not_found(db):
     assert exc.value.status_code == 404
 
 
-def test_lock_goal_sheet_submit_and_audit_log(db, mock_user):
-    sheet = models.GoalSheet(user_id=mock_user.id, cycle_id=1, status="DRAFT")
+def _add_goals_100(db, sheet, owner_id):
+    db.add(
+        models.Goal(
+            title="A", weightage=50, owner_id=owner_id, goal_sheet_id=sheet.id
+        )
+    )
+    db.add(
+        models.Goal(
+            title="B", weightage=50, owner_id=owner_id, goal_sheet_id=sheet.id
+        )
+    )
+    db.commit()
+
+
+def test_lock_goal_sheet_submit_and_audit_log(db, mock_user, active_cycle):
+    sheet = models.GoalSheet(
+        user_id=mock_user.id, cycle_id=active_cycle.id, status="DRAFT"
+    )
     db.add(sheet)
     db.commit()
     db.refresh(sheet)
+    _add_goals_100(db, sheet, mock_user.id)
 
-    result = goal_service.lock_goal_sheet(db, sheet.id, action_user_id=mock_user.id, is_manager=False)
+    result = goal_service.lock_goal_sheet(
+        db, sheet.id, action_user_id=mock_user.id, is_manager=False
+    )
     assert result.status == "SUBMITTED"
 
-    audit = db.query(models.AuditLog).filter_by(user_id=mock_user.id, action="SUBMIT_SHEET").first()
+    audit = (
+        db.query(models.AuditLog)
+        .filter_by(user_id=mock_user.id, action="SUBMIT_SHEET")
+        .first()
+    )
     assert audit is not None
     assert audit.target_resource == f"GoalSheet:{sheet.id}"
 
 
-def test_lock_goal_sheet_approve_and_audit_log(db, mock_user):
-    sheet = models.GoalSheet(user_id=mock_user.id, cycle_id=1, status="SUBMITTED")
+def test_lock_goal_sheet_approve_and_audit_log(db, mock_user, active_cycle):
+    sheet = models.GoalSheet(
+        user_id=mock_user.id, cycle_id=active_cycle.id, status="SUBMITTED"
+    )
     db.add(sheet)
     db.commit()
     db.refresh(sheet)
+    _add_goals_100(db, sheet, mock_user.id)
 
-    result = goal_service.lock_goal_sheet(db, sheet.id, action_user_id=mock_user.id, is_manager=True)
+    result = goal_service.lock_goal_sheet(
+        db, sheet.id, action_user_id=mock_user.id, is_manager=True
+    )
     assert result.status == "APPROVED"
 
-    audit = db.query(models.AuditLog).filter_by(user_id=mock_user.id, action="APPROVE_SHEET").first()
+    audit = (
+        db.query(models.AuditLog)
+        .filter_by(user_id=mock_user.id, action="APPROVE_SHEET")
+        .first()
+    )
     assert audit is not None
     assert audit.target_resource == f"GoalSheet:{sheet.id}"
 
@@ -55,7 +87,7 @@ def test_push_kpi_fails_when_parent_goal_missing(db):
     assert exc.value.status_code == 404
 
 
-def test_push_kpi_fails_when_subordinate_has_no_draft_sheet(db):
+def test_push_kpi_fails_when_subordinate_has_no_draft_sheet(db, active_cycle):
     manager = models.User(email="manager-no-sheet@ex.com", hashed_password="fakehash")
     subordinate = models.User(email="sub-no-sheet@ex.com", hashed_password="fakehash")
     db.add_all([manager, subordinate])
@@ -63,11 +95,15 @@ def test_push_kpi_fails_when_subordinate_has_no_draft_sheet(db):
     db.add(models.OrgHierarchy(manager_id=manager.id, employee_id=subordinate.id))
     db.commit()
 
-    mgr_sheet = models.GoalSheet(user_id=manager.id, cycle_id=1, status="APPROVED")
+    mgr_sheet = models.GoalSheet(
+        user_id=manager.id, cycle_id=active_cycle.id, status="APPROVED"
+    )
     db.add(mgr_sheet)
     db.commit()
     db.refresh(mgr_sheet)
-    goal = models.Goal(title="Parent Goal", weightage=50, owner_id=manager.id, goal_sheet_id=mgr_sheet.id)
+    goal = models.Goal(
+        title="Parent Goal", weightage=50, owner_id=manager.id, goal_sheet_id=mgr_sheet.id
+    )
     db.add(goal)
     db.commit()
     db.refresh(goal)
@@ -79,7 +115,7 @@ def test_push_kpi_fails_when_subordinate_has_no_draft_sheet(db):
     assert exc.value.status_code == 400
 
 
-def test_build_csv_report_includes_subordinate_goal_rows(db):
+def test_build_csv_report_includes_subordinate_goal_rows(db, active_cycle):
     manager = models.User(email="manager-report@ex.com", hashed_password="fakehash")
     subordinate = models.User(email="sub-report@ex.com", hashed_password="fakehash")
     db.add_all([manager, subordinate])
@@ -88,12 +124,21 @@ def test_build_csv_report_includes_subordinate_goal_rows(db):
     db.add(models.OrgHierarchy(manager_id=manager.id, employee_id=subordinate.id))
     db.commit()
 
-    sub_sheet = models.GoalSheet(user_id=subordinate.id, cycle_id=1, status="DRAFT")
+    sub_sheet = models.GoalSheet(
+        user_id=subordinate.id, cycle_id=active_cycle.id, status="DRAFT"
+    )
     db.add(sub_sheet)
     db.commit()
     db.refresh(sub_sheet)
 
-    db.add(models.Goal(title="Subordinate KPI", weightage=30, owner_id=subordinate.id, goal_sheet_id=sub_sheet.id))
+    db.add(
+        models.Goal(
+            title="Subordinate KPI",
+            weightage=30,
+            owner_id=subordinate.id,
+            goal_sheet_id=sub_sheet.id,
+        )
+    )
     db.commit()
 
     csv_output = report_service.build_csv_report(db, manager_id=manager.id)
@@ -101,13 +146,17 @@ def test_build_csv_report_includes_subordinate_goal_rows(db):
     assert "sub-report@ex.com,Subordinate KPI,30,DRAFT" in csv_output
 
 
-def test_create_goal_respects_updating_goal_id_exclusion(db, mock_user):
-    sheet = models.GoalSheet(user_id=mock_user.id, cycle_id=1, status="DRAFT")
+def test_create_goal_respects_updating_goal_id_exclusion(db, mock_user, active_cycle):
+    sheet = models.GoalSheet(
+        user_id=mock_user.id, cycle_id=active_cycle.id, status="DRAFT"
+    )
     db.add(sheet)
     db.commit()
     db.refresh(sheet)
 
-    existing_goal = models.Goal(title="Existing", weightage=80, owner_id=mock_user.id, goal_sheet_id=sheet.id)
+    existing_goal = models.Goal(
+        title="Existing", weightage=80, owner_id=mock_user.id, goal_sheet_id=sheet.id
+    )
     db.add(existing_goal)
     db.commit()
     db.refresh(existing_goal)

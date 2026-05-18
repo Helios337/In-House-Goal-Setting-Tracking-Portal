@@ -1,22 +1,45 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, ClipboardList, CheckCircle2, AlertCircle, FileEdit } from "lucide-react";
+import { fetchGoalSheets, type GoalSheetSummary } from "@/lib/goal-api";
+import { Spinner } from "@/components/ui/Spinner";
+
+function formatStatus(status: string) {
+  if (status === "APPROVED") return "Approved";
+  if (status === "SUBMITTED") return "Pending";
+  return "Draft";
+}
 
 export default function GoalsListPage() {
-  // Mock data reflecting system validation boundaries
-  const [goalSheets] = useState([
-    { id: "sheet-2026", period: "FY 2026 Cycle", status: "Draft", goalCount: 3, totalWeight: 45 },
-    { id: "sheet-2025", period: "FY 2025 Cycle", status: "Approved", goalCount: 6, totalWeight: 100 },
-  ]);
+  const [goalSheets, setGoalSheets] = useState<GoalSheetSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchGoalSheets()
+      .then(setGoalSheets)
+      .catch(() => setError("Could not load goal sheets. Is the API running?"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center p-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-5">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">My Performance Trackers</h1>
-          <p className="text-sm text-slate-500">Formulate, submit, and view alignment sheets across operational periods.</p>
+          <p className="text-sm text-slate-500">
+            Formulate, submit, and view alignment sheets across operational periods.
+          </p>
         </div>
         <Link
           href="/employee/goals/new"
@@ -27,59 +50,92 @@ export default function GoalsListPage() {
         </Link>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {goalSheets.map((sheet) => (
-          <div key={sheet.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition">
-            <div className="flex justify-between items-start">
-              <div className="flex gap-3 items-center">
-                <div className="p-2 bg-slate-100 rounded-lg text-slate-700">
-                  <ClipboardList className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900">{sheet.period}</h3>
-                  <p className="text-xs text-slate-400">ID: {sheet.id.toUpperCase()}</p>
-                </div>
-              </div>
-              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                sheet.status === "Approved" ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20" : "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
-              }`}>
-                {sheet.status === "Approved" ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                {sheet.status}
-              </span>
-            </div>
+      {error && (
+        <p className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3">
+          {error}
+        </p>
+      )}
 
-            <div className="mt-6 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 text-sm">
-              <div>
-                <span className="text-slate-400 block text-xs">Active Targets</span>
-                <span className="font-semibold text-slate-700">{sheet.goalCount} Objectives</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-xs">Allocated Weightage</span>
-                <span className={`font-semibold ${sheet.totalWeight === 100 ? "text-emerald-600" : "text-amber-600"}`}>
-                  {sheet.totalWeight}% / 100%
+      {goalSheets.length === 0 && !error && (
+        <p className="text-sm text-slate-500">No goal sheets yet. Create one to get started.</p>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {goalSheets.map((sheet) => {
+          const displayStatus = formatStatus(sheet.status);
+          const approved = sheet.status === "APPROVED";
+          return (
+            <div
+              key={sheet.id}
+              className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex gap-3 items-center">
+                  <div className="p-2 bg-slate-100 rounded-lg text-slate-700">
+                    <ClipboardList className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">
+                      {sheet.cycle_name || `Cycle ${sheet.cycle_id}`}
+                    </h3>
+                    <p className="text-xs text-slate-400">Sheet #{sheet.id}</p>
+                  </div>
+                </div>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    approved
+                      ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
+                      : "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
+                  }`}
+                >
+                  {approved ? (
+                    <CheckCircle2 className="h-3 w-3" />
+                  ) : (
+                    <AlertCircle className="h-3 w-3" />
+                  )}
+                  {displayStatus}
                 </span>
               </div>
-            </div>
 
-            <div className="mt-6 flex gap-2">
-              <Link
-                href={`/employee/goals/${sheet.id}`}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
-              >
-                <FileEdit className="h-4 w-4 text-slate-400" />
-                Inspect Workspace
-              </Link>
-              {sheet.status !== "Approved" && (
+              <div className="mt-6 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 text-sm">
+                <div>
+                  <span className="text-slate-400 block text-xs">Active Targets</span>
+                  <span className="font-semibold text-slate-700">
+                    {sheet.goal_count} Objectives
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-xs">Allocated Weightage</span>
+                  <span
+                    className={`font-semibold ${
+                      sheet.total_weightage === 100 ? "text-emerald-600" : "text-amber-600"
+                    }`}
+                  >
+                    {sheet.total_weightage}% / 100%
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-2">
                 <Link
-                  href="/employee/quarterly"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+                  href={`/employee/goals/${sheet.id}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
                 >
-                  Log Progress
+                  <FileEdit className="h-4 w-4 text-slate-400" />
+                  Inspect Workspace
                 </Link>
-              )}
+                {!approved && (
+                  <Link
+                    href="/employee/quarterly"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+                  >
+                    Log Progress
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

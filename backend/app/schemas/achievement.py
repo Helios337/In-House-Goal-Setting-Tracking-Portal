@@ -1,9 +1,15 @@
-from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
+from pydantic import BaseModel, ConfigDict, Field
+
+
 class AchievementUpdate(BaseModel):
-    progress_percentage: float
+    goal_id: int
+    quarter: str
+    progress_percentage: Optional[float] = None
+    actual_value: Optional[float] = None
     narrative: Optional[str] = None
+
 
 class ProgressOut(BaseModel):
     id: int

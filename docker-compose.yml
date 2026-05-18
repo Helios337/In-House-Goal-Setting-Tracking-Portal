@@ -41,10 +41,10 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: ${NODE_ENV}
+      APP_ENV: ${APP_ENV:-development}
       PORT: ${API_PORT}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
@@ -64,7 +64,10 @@ services:
       - .env
     environment:
       PORT: ${WEB_PORT}
-      API_BASE_URL: ${API_BASE_URL}
+      API_BASE_URL: http://api:8000
+      NEXT_PUBLIC_API_URL: http://localhost:${API_PORT}
+      NEXTAUTH_URL: http://localhost:${WEB_PORT}
+      NEXTAUTH_SECRET: ${JWT_SECRET}
     depends_on:
       api:
         condition: service_started

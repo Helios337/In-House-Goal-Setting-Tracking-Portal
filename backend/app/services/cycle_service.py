@@ -26,3 +26,12 @@ def is_phase_active(db: Session, phase_name: str, cycle_id: int) -> bool:
     ).first()
     
     return bool(phase)
+
+
+def require_phase_active(db: Session, phase_name: str, cycle_id: int) -> None:
+    """Raise HTTP 400 if the named phase window is not currently open."""
+    if not is_phase_active(db, phase_name, cycle_id):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Phase '{phase_name}' is not currently active for this cycle.",
+        )

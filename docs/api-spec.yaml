@@ -2,72 +2,70 @@ openapi: 3.1.0
 info:
   title: In-House Goal Setting & Tracking API
   version: 1.0.0
-  description: API specifications for the AtomQuest Hackathon goal portal.
+  description: FastAPI backend for the goal portal.
 servers:
   - url: /api/v1
 paths:
-  /goals:
+  /auth/login:
     post:
-      summary: Create a new Goal Sheet
+      summary: Password login (OAuth2 form)
+      tags: [Auth]
+  /auth/sso:
+    post:
+      summary: Exchange Entra id_token or demo email for backend JWT
+      tags: [Auth]
+  /goals/:
+    post:
+      summary: Create a goal on a sheet
       tags: [Goals]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GoalSheet'
-      responses:
-        '201':
-          description: Goal sheet successfully submitted.
-        '400':
-          description: Validation error (e.g., weightage != 100%).
-  /goals/{id}/approve:
-    put:
-      summary: L1 Manager approves a Goal Sheet
-      tags: [Goals, Manager]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Goals locked and approved.
-  /check-ins:
+    get:
+      summary: List goals for current user
+      tags: [Goals]
+  /goals/sheets/current:
+    get:
+      summary: Current user's goal sheet with goals
+      tags: [Goals]
+  /goals/{sheet_id}/submit:
     post:
-      summary: Log Quarterly Achievement
-      tags: [Check-Ins]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CheckIn'
-      responses:
-        '201':
-          description: Check-in recorded successfully.
-components:
-  schemas:
-    GoalSheet:
-      type: object
-      properties:
-        employee_id:
-          type: string
-        goals:
-          type: array
-          items:
-            type: object
-            properties:
-              title: { type: string }
-              thrust_area: { type: string }
-              uom: { type: string, enum: ['Numeric', 'Percentage', 'Timeline', 'Zero'] }
-              target: { type: number }
-              weightage: { type: number, minimum: 10 }
-    CheckIn:
-      type: object
-      properties:
-        goal_id: { type: string }
-        quarter: { type: string, enum: ['Q1', 'Q2', 'Q3', 'Q4'] }
-        actual_achievement: { type: number }
-        status: { type: string, enum: ['Not Started', 'On Track', 'Completed'] }
+      summary: Employee submits goal sheet (requires 100% weight, active Goal Setting phase)
+      tags: [Goals]
+  /goals/{sheet_id}/approve:
+    post:
+      summary: Manager approves goal sheet
+      tags: [Goals]
+  /achievements/:
+    post:
+      summary: Log quarterly achievement (progress computed via UoM engine)
+      tags: [Achievements]
+  /checkins/team:
+    get:
+      summary: Manager list of approved sheets ready for check-in
+      tags: [Checkins]
+  /checkins/employee/{employee_id}:
+    get:
+      summary: Manager view of employee goals and progress
+      tags: [Checkins]
+  /checkins/:
+    post:
+      summary: Manager records check-in with comment
+      tags: [Checkins]
+  /shared-goals/cascade-options:
+    get:
+      summary: Admin list of managers, goals, and subordinates for cascade
+      tags: [SharedGoals]
+  /shared-goals/admin/cascade:
+    post:
+      summary: Admin push shared KPI to multiple employees
+      tags: [SharedGoals]
+  /reports/dashboard:
+    get:
+      summary: Aggregated stats and team completion heatmap data
+      tags: [Reports]
+  /reports/export:
+    get:
+      summary: CSV export of subordinate goals (manager)
+      tags: [Reports]
+  /events/stream:
+    get:
+      summary: SSE stream of realtime events
+      tags: [Events]

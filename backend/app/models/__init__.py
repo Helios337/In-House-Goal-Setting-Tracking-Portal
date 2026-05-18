@@ -11,3 +11,5 @@ from .shared_goal import SharedGoal
 from .achievement import QuarterlyAchievement
 from .checkin import ManagerCheckin, Comment
 from .audit_log import AuditLog
+from .notification import Notification
+from .escalation import EscalationRecord

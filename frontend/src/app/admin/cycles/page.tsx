@@ -1,61 +1,55 @@
 "use client";
 
-import React, { useState } from "react";
-import { Calendar, ToggleLeft, ToggleRight, Clock, Plus } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import { Spinner } from "@/components/ui/Spinner";
 
-export default function CycleTemporalConfiguration() {
-  const [windows, setWindows] = useState([
-    { period: "Phase 1 — Goal Setting", windowOpens: "1st May", activity: "Goal Creation, Submission & Approval", active: true },
-    { period: "Q1 Check-in", windowOpens: "July", activity: "Progress Update — Planned vs. Actual", active: false },
-    { period: "Q2 Check-in", windowOpens: "October", activity: "Progress Update — Planned vs. Actual", active: false }
-  ]);
+interface Cycle {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+}
 
-  const toggleTargetWindowStatus = (index: number) => {
-    const next = [...windows];
-    next[index].active = !next[index].active;
-    setWindows(next);
-  };
+export default function CycleSettingsPage() {
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .get<Cycle[]>("/cycles")
+      .then((res) => setCycles(res.data))
+      .catch(() => setError("Failed to load cycles."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center p-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto w-full space-y-6">
-      <div className="flex justify-between items-center border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Evaluation Window Administration</h1> 
-          <p className="text-sm text-slate-500 mt-1">Configure user role visibility toggles and active capture windows.</p>
-        </div>
-        <button className="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg shadow-sm transition">
-          <Plus className="h-4 w-4" /> Initialize New Window
-        </button>
-      </div>
-
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="divide-y divide-slate-200">
-          {windows.map((w, idx) => (
-            <div key={idx} className="p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:bg-slate-50/40 transition">
-              <div className="flex gap-3.5 items-start">
-                <div className={`p-2.5 rounded-xl border ${w.active ? "bg-emerald-50 border-emerald-200 text-emerald-600" : "bg-slate-50 border-slate-200 text-slate-400"}`}>
-                  <Calendar className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-800 text-base">{w.period}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5 font-medium flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Targeted Trigger Window: {w.windowOpens}
-                  </p>
-                  <span className="text-xs text-slate-400 mt-1 block">Expected Workflow: {w.activity}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0">
-                <span className={`text-xs font-bold uppercase tracking-wider ${w.active ? "text-emerald-600" : "text-slate-400"}`}>
-                  {w.active ? "Accepting Queries" : "Portal Window Locked"}
-                </span>
-                <button onClick={() => toggleTargetWindowStatus(idx)} className="text-slate-600 hover:text-indigo-600 transition">
-                  {w.active ? <ToggleRight className="h-8 w-8 text-indigo-600" /> : <ToggleLeft className="h-8 w-8 text-slate-300" />}
-                </button>
-              </div>
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold text-slate-900">Performance cycles</h1>
+      {error && <p className="text-sm text-rose-600">{error}</p>}
+      <div className="bg-white border rounded-xl divide-y">
+        {cycles.length === 0 ? (
+          <p className="p-6 text-sm text-slate-500">No cycles configured. Run database seed.</p>
+        ) : (
+          cycles.map((c) => (
+            <div key={c.id} className="p-4 flex justify-between text-sm">
+              <span className="font-semibold text-slate-800">{c.name}</span>
+              <span className="text-slate-500">
+                {new Date(c.start_date).toLocaleDateString()} –{" "}
+                {new Date(c.end_date).toLocaleDateString()}
+              </span>
             </div>
-          ))}
-        </div>
+          ))
+        )}
       </div>
     </div>
   );

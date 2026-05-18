@@ -3,7 +3,9 @@ import { getSession } from "next-auth/react";
 
 // Create a customized Axios instance
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
+    : "/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -28,9 +30,8 @@ api.interceptors.response.use(
     // If a 401 Unauthorized is returned, you can trigger NextAuth signOut
     // or attempt a silent token refresh here depending on your Entra ID config.
     if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        console.error("Session expired or unauthorized.");
-        // window.location.href = '/login'; 
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);

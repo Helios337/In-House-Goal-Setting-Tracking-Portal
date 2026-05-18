@@ -1,9 +1,21 @@
 # In-House Goal Setting & Tracking Portal
 
 This repository contains an internal goal-setting and tracking platform with:
-- **Backend**: FastAPI-based API (Python)
+- **Backend**: FastAPI REST API (Python)
 - **Frontend**: Next.js web app (React)
+- **Database**: PostgreSQL
+- **Real-time**: Redis pub/sub + Server-Sent Events
 - **Infrastructure**: Docker Compose stack with PostgreSQL and Redis
+
+## Architecture (as-built)
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 15, React 18, NextAuth (Azure AD + credentials) |
+| Backend | FastAPI, SQLAlchemy, Alembic |
+| Auth | JWT (HS256) + optional Entra ID token verification |
+| Integrations | SendGrid email, Microsoft Teams webhook (optional) |
+| DevOps | Docker Compose, generic Kubernetes manifests, GitHub Actions CI |
 
 This manual provides a **detailed step-by-step setup guide** for:
 1. Windows

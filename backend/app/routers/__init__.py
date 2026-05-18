@@ -9,6 +9,9 @@ from .users import router as users_router
 from .cycles import router as cycles_router
 from .reports import router as reports_router
 from .audit import router as audit_router
+from .events import router as events_router
+from .notifications import router as notifications_router
+from .team_goals import router as team_goals_router
 
 api_router = APIRouter()
 
@@ -21,3 +24,7 @@ api_router.include_router(achievements_router, prefix="/achievements", tags=["Ac
 api_router.include_router(checkins_router, prefix="/checkins", tags=["Manager Check-ins"])
 api_router.include_router(reports_router, prefix="/reports", tags=["Reports"])
 api_router.include_router(audit_router, prefix="/audit", tags=["Audit Log"])
+api_router.include_router(audit_router, prefix="/audit-logs", tags=["Audit Log"])
+api_router.include_router(events_router, prefix="/events", tags=["Real-time Events"])
+api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
+api_router.include_router(team_goals_router, prefix="/team-goals", tags=["Team Goals"])

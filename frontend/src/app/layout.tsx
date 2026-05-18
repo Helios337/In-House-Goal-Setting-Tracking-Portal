@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css"; // Ensure Tailwind directives are here
+import "./globals.css";
+import { SessionProvider } from "@/providers/SessionProvider";
+import { RealtimeProvider } from "@/providers/RealtimeProvider";
 
 export const metadata: Metadata = {
   title: "In-House Goal Setting & Tracking Portal",
@@ -14,10 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full bg-slate-50 text-slate-900">
       <body className="h-full antialiased">
-        {/* Mock Global Auth Provider wrapper layout */}
-        <div className="min-h-screen flex flex-col">
-          {children}
-        </div>
+        <SessionProvider>
+          <RealtimeProvider>
+            <div className="min-h-screen flex flex-col">{children}</div>
+          </RealtimeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

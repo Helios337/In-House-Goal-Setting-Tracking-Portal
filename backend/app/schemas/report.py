@@ -1,5 +1,12 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+
+
+class TeamCompletionRow(BaseModel):
+    department: str
+    totalEmployees: int
+    completedCheckins: int
+
 
 class AchievementReportRow(BaseModel):
     user_id: int
@@ -9,8 +16,10 @@ class AchievementReportRow(BaseModel):
     quarter: str
     progress: float
 
+
 class DashboardOut(BaseModel):
     total_users: int
     active_cycles: int
     company_average_progress: float
     reports: List[AchievementReportRow]
+    team_completion: List[TeamCompletionRow] = []

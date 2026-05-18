@@ -6,15 +6,13 @@ const nextConfig = {
   },
   
   async rewrites() {
+    // Only proxy the backend's /api/v1/* prefix.
+    // /api/auth/* (NextAuth) and /api/events/* (Next route) must stay in Next.js.
+    const backend = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
     return [
       {
-        // Proxy all API requests to the FastAPI backend
-        source: '/api/:path*',
-        // Assuming FastAPI runs on localhost:8000
-        // In production, this should point to your real backend URL via an env variable
-        destination: process.env.NEXT_PUBLIC_API_URL 
-          ? `${process.env.NEXT_PUBLIC_API_URL}/api/:path*` 
-          : 'http://127.0.0.1:8000/api/:path*',
+        source: '/api/v1/:path*',
+        destination: `${backend}/api/v1/:path*`,
       },
     ]
   },
