@@ -7,9 +7,7 @@ export default function EmployeeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <DashboardShell
-      allowedRoles={[UI_ROLES.employee, UI_ROLES.manager, UI_ROLES.admin]}
-    >
+    <DashboardShell allowedRoles={[UI_ROLES.employee]}>
       {children}
     </DashboardShell>
   );

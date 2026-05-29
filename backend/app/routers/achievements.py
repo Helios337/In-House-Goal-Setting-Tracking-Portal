@@ -10,6 +10,7 @@ from app.services import achievement_service
 router = APIRouter()
 
 
+@router.post("", response_model=schemas.ProgressOut)
 @router.post("/", response_model=schemas.ProgressOut)
 def log_quarterly_actuals(
     achievement_in: schemas.AchievementUpdate,

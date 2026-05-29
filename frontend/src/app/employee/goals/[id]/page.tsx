@@ -39,6 +39,17 @@ export default function GoalSheetDetailPage() {
         <p className="text-sm text-slate-500">
           Sheet #{sheet.id} · Status: {sheet.status} · Weight: {sheet.total_weightage}%
         </p>
+        {sheet.status === "SUBMITTED" && (
+          <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Waiting for manager approval. Goals cannot be edited while submitted.
+          </p>
+        )}
+        {sheet.status === "APPROVED" && (
+          <p className="mt-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+            Approved. Use quarterly progress logging from your tracker list when the check-in phase
+            is open.
+          </p>
+        )}
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">

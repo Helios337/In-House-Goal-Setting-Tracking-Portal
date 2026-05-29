@@ -1,17 +1,25 @@
 import axios from "axios";
 import { getSession } from "next-auth/react";
 
-// Create a customized Axios instance
+/** Browser calls same-origin `/api/v1` (Next.js rewrite → backend). Server/SSR uses API_BASE_URL. */
+export function resolveApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    return "/api/v1";
+  }
+  const backend =
+    process.env.API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://127.0.0.1:8000";
+  return `${backend.replace(/\/$/, "")}/api/v1`;
+}
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
-    : "/api/v1",
+  baseURL: resolveApiBaseUrl(),
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor to attach JWT token
 api.interceptors.request.use(
   async (config) => {
     const session = await getSession();
@@ -23,12 +31,9 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for global error handling (e.g., Token Refresh logic)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // If a 401 Unauthorized is returned, you can trigger NextAuth signOut
-    // or attempt a silent token refresh here depending on your Entra ID config.
     if (error.response?.status === 401) {
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
@@ -37,3 +42,17 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export function apiErrorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err)) {
+    if (!err.response) {
+      return "Could not reach the API. Check that the backend is running and NEXT_PUBLIC_API_URL / API_BASE_URL match your setup.";
+    }
+    if (err.response.status === 401) {
+      return "Not authorized. Sign out and sign in again.";
+    }
+    const detail = err.response.data?.detail;
+    if (typeof detail === "string") return detail;
+  }
+  return fallback;
+}

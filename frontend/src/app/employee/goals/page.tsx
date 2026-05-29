@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Plus, ClipboardList, CheckCircle2, AlertCircle, FileEdit } from "lucide-react";
-import { fetchGoalSheets, type GoalSheetSummary } from "@/lib/goal-api";
+import { fetchCurrentSheet, fetchGoalSheets, type GoalSheetSummary } from "@/lib/goal-api";
+import { apiErrorMessage } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 function formatStatus(status: string) {
@@ -13,16 +15,34 @@ function formatStatus(status: string) {
 }
 
 export default function GoalsListPage() {
+  const { status } = useSession();
   const [goalSheets, setGoalSheets] = useState<GoalSheetSummary[]>([]);
+  const [currentSheetStatus, setCurrentSheetStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const canCreateNewSheet =
+    currentSheetStatus === null || currentSheetStatus === "DRAFT";
+
   useEffect(() => {
-    fetchGoalSheets()
-      .then(setGoalSheets)
-      .catch(() => setError("Could not load goal sheets. Is the API running?"))
+    if (status === "loading") return;
+    if (status !== "authenticated") {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    Promise.all([fetchGoalSheets(), fetchCurrentSheet()])
+      .then(([sheets, current]) => {
+        setGoalSheets(sheets);
+        setCurrentSheetStatus(current.status);
+      })
+      .catch((err) =>
+        setError(apiErrorMessage(err, "Could not load goal sheets."))
+      )
       .finally(() => setLoading(false));
-  }, []);
+  }, [status]);
 
   if (loading) {
     return (
@@ -41,13 +61,19 @@ export default function GoalsListPage() {
             Formulate, submit, and view alignment sheets across operational periods.
           </p>
         </div>
-        <Link
-          href="/employee/goals/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition"
-        >
-          <Plus className="h-4 w-4" />
-          Formulate New Goal Sheet
-        </Link>
+        {canCreateNewSheet ? (
+          <Link
+            href="/employee/goals/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition"
+          >
+            <Plus className="h-4 w-4" />
+            {currentSheetStatus === "DRAFT" ? "Continue goal sheet" : "Formulate New Goal Sheet"}
+          </Link>
+        ) : (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Current sheet is pending or approved — view it below.
+          </p>
+        )}
       </div>
 
       {error && (

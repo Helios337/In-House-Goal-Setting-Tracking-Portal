@@ -100,14 +100,14 @@ A deeper deep-dive — including sequence diagrams for auth, the goal lifecycle 
 │   │   ├── services/         Domain logic (goal, checkin, achievement, …)
 │   │   └── events/           DomainEvent types + Redis channel helpers
 │   ├── alembic/              Migrations (0001 → 0005)
-│   ├── tests/                pytest suite (36 tests, SQLite in-memory)
+│   ├── tests/                pytest suite (37 tests, SQLite in-memory)
 │   ├── scripts/              migrate.sh, seed.py, smoke_test.py
 │   └── requirements.txt
 ├── frontend/                 Next.js 15 application
 │   ├── src/
 │   │   ├── app/              App-router routes (employee/, manager/, admin/, api/)
 │   │   ├── components/       UI primitives + role-aware shells
-│   │   ├── hooks/            useRealtime (SSE), useGoals, useNotifications
+│   │   ├── hooks/            useRealtime (SSE), useNotifications, useTeamGoals
 │   │   ├── lib/              api.ts (axios), auth-options.ts, goal-api.ts, roles.ts
 │   │   ├── providers/        SessionProvider, RealtimeProvider (toast)
 │   │   └── types/            next-auth.d.ts, api.ts
@@ -220,6 +220,7 @@ Mounted at `/api/v1` — full Swagger UI at `http://localhost:8000/docs` when th
 | Group | Selected endpoints |
 |-------|--------------------|
 | **Authentication** | `POST /auth/login`, `POST /auth/sso` |
+| **Thrust areas** | `GET /thrust-areas` |
 | **Users** | `GET /users/me`, `GET /users` (admin) |
 | **Cycles** | `GET /cycles`, `POST /cycles` (admin) |
 | **Goals** | `GET /goals/sheets`, `GET /goals/sheets/current`, `POST /goals/`, `POST /goals/{sheet_id}/submit`, `POST /goals/{sheet_id}/approve`, `GET /goals/manager/pending-approvals` |
@@ -248,7 +249,9 @@ The full machine-readable spec lives in [`docs/api-spec.yaml`](./docs/api-spec.y
 
 Org hierarchy: `manager@demo` is the direct manager of `employee@demo`. There is one `CheckinCycle` ("FY 2026") with two active `PhaseWindow`s, and three `ThrustArea`s (Sales Revenue, Operational TAT, Safety Compliance).
 
-> The dev login form ignores the password field (uses `/auth/sso` with `ALLOW_INSECURE_SSO=true`) and trusts the role dropdown. Disable `ALLOW_INSECURE_SSO` and wire up Entra ID for production.
+> Credentials sign-in calls `POST /api/v1/auth/login` and verifies the password. Entra SSO uses `/auth/sso` with a verified `id_token`. Keep `ALLOW_INSECURE_SSO=false` in production; set it to `true` only on a developer machine for SSO-less demos.
+
+See [`DEPLOYMENT.md`](./DEPLOYMENT.md) for the internal rollout checklist.
 
 ---
 
@@ -274,7 +277,7 @@ See [`docs/architecture.md`](./docs/architecture.md) §4 for the full sequence.
 ## Testing
 
 ```bash
-# Backend (36 tests, SQLite in-memory, ~0.3s)
+# Backend (37 tests, SQLite in-memory, ~0.3s)
 cd backend && source .venv/bin/activate
 pytest -q
 
@@ -297,6 +300,8 @@ cd backend && PYTHONPATH=. python scripts/smoke_test.py
 ---
 
 ## Deployment
+
+See **[`DEPLOYMENT.md`](./DEPLOYMENT.md)** for the internal production rollout checklist (secrets, migrations, verification).
 
 ### Docker Compose (single host)
 
@@ -340,7 +345,7 @@ All settings come from the project-root `.env` (loaded by Docker Compose, `backe
 | `DATABASE_URL` | derived | Override to use a non-`POSTGRES_*` connection |
 | `REDIS_URL` | `redis://localhost:6379/0` | Use `redis://redis:6379/0` inside Compose |
 | `JWT_SECRET` | required | HS256 secret for own JWTs (≥ 32 bytes) |
-| `ALLOW_INSECURE_SSO` | `true` (dev only) | Let `/auth/sso` accept email without verifying an `id_token` |
+| `ALLOW_INSECURE_SSO` | `false` | Let `/auth/sso` accept email without verifying an `id_token` (dev only) |
 | `ENTRA_CLIENT_ID` / `ENTRA_TENANT_ID` / `ENTRA_CLIENT_SECRET` | unset | Required when `ALLOW_INSECURE_SSO=false` |
 | `EMAIL_PROVIDER`, `SENDGRID_API_KEY`, `EMAIL_FROM` | unset | Outbound email |
 | `TEAMS_WEBHOOK_URL` | unset | Outbound Teams card |
@@ -391,7 +396,6 @@ All settings come from the project-root `.env` (loaded by Docker Compose, `backe
 
 Tracked priorities (not commitments):
 
-- [ ] Add `GET /thrust-areas` endpoint and wire the goal form to send `thrust_area_id`.
 - [ ] Replace the credentials login shortcut with real bcrypt verification against `users.hashed_password`.
 - [ ] Frontend: remove the 8 lingering `any` types and 2 unused imports.
 - [ ] E2E test in CI (Playwright against a Compose stack).

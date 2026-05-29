@@ -90,13 +90,13 @@ const navLinks: NavItem[] = [
   {
     label: "My Goals",
     href: "/employee/goals",
-    roles: [UI_ROLES.employee, UI_ROLES.manager, UI_ROLES.admin],
+    roles: [UI_ROLES.employee],
     icon: <GoalIcon />,
   },
   {
     label: "Quarterly Progress",
     href: "/employee/quarterly",
-    roles: [UI_ROLES.employee, UI_ROLES.manager, UI_ROLES.admin],
+    roles: [UI_ROLES.employee],
     icon: <CheckinIcon />,
   },
   {

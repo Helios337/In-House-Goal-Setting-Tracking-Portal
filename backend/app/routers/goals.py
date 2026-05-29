@@ -10,6 +10,7 @@ from app.services import goal_service
 router = APIRouter()
 
 
+@router.post("", response_model=schemas.GoalOut)
 @router.post("/", response_model=schemas.GoalOut)
 def create_goal(
     goal_in: schemas.GoalCreate,

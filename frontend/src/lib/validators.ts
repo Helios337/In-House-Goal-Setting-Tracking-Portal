@@ -5,7 +5,7 @@ export const goalSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(3, "Goal title is required"),
   description: z.string().optional(),
-  thrustArea: z.string().min(1, "Thrust Area is required"),
+  thrustAreaId: z.number().int().positive("Thrust Area is required"),
   uom: z.enum(["Min (Numeric / %)", "Max (Numeric / %)", "Timeline", "Zero"]),
   target: z.string().min(1, "Target is required"),
   // Rule: Minimum weightage per individual goal: 10%

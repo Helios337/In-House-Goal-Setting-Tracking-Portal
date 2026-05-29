@@ -2,17 +2,27 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { Shield, Key, LogIn } from "lucide-react";
-import { defaultPathForUiRole } from "@/lib/roles";
+import {
+  DEMO_LOGIN_BY_ROLE,
+  defaultPathForSessionRole,
+  defaultPathForUiRole,
+  type UiRoleKey,
+} from "@/lib/roles";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("employee@demo.example.com");
+  const [role, setRole] = useState<UiRoleKey>("employee");
+  const [email, setEmail] = useState(DEMO_LOGIN_BY_ROLE.employee.email);
   const [password, setPassword] = useState("demo123");
-  const [role, setRole] = useState("employee");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleRoleChange = (nextRole: UiRoleKey) => {
+    setRole(nextRole);
+    setEmail(DEMO_LOGIN_BY_ROLE[nextRole].email);
+  };
 
   const handleStandardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,18 +32,19 @@ export default function LoginPage() {
     const result = await signIn("credentials", {
       email,
       password,
-      role,
       redirect: false,
     });
 
     setLoading(false);
 
     if (result?.error) {
-      setError("Login failed. Ensure the API is running and database is seeded.");
+      setError("Login failed. Check email/password and ensure the API and database are ready.");
       return;
     }
 
-    router.push(defaultPathForUiRole(role));
+    const session = await getSession();
+    const roleLabel = session?.user?.roles?.[0] ?? "Employee";
+    router.push(defaultPathForSessionRole(roleLabel));
   };
 
   const handleEntraSSO = () => {
@@ -51,7 +62,7 @@ export default function LoginPage() {
             AtomQuest Performance Portal
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            Demo: employee@demo.example.com / manager@demo.example.com / admin@demo.example.com
+            Sign in with your corporate email and password, or use Microsoft Entra ID.
           </p>
         </div>
 
@@ -63,6 +74,26 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleStandardLogin}>
           <div className="space-y-4 rounded-md shadow-sm">
+            <div>
+              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Sign in as
+              </label>
+              <select
+                value={role}
+                onChange={(e) => handleRoleChange(e.target.value as UiRoleKey)}
+                className="mt-1 block w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                {(Object.keys(DEMO_LOGIN_BY_ROLE) as UiRoleKey[]).map((key) => (
+                  <option key={key} value={key}>
+                    {DEMO_LOGIN_BY_ROLE[key].label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-slate-500">
+                Picks the demo account for that role. Your access comes from the account in the
+                database, not from this dropdown alone.
+              </p>
+            </div>
             <div>
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 Corporate Email
@@ -92,21 +123,11 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                Sign In As
-              </label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="employee">Employee</option>
-                <option value="manager">Manager (L1)</option>
-                <option value="admin">Admin / HR</option>
-              </select>
-            </div>
           </div>
+
+          <p className="text-xs text-slate-500 text-center">
+            Demo password for all seeded users: <span className="text-slate-400">demo123</span>
+          </p>
 
           <button
             type="submit"
@@ -116,7 +137,7 @@ export default function LoginPage() {
             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
               <LogIn className="h-4 w-4 text-indigo-300 group-hover:text-indigo-200" />
             </span>
-            {loading ? "Signing in…" : "Sign In with Credentials"}
+            {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
 

@@ -11,6 +11,7 @@ from app.services import cycle_service
 router = APIRouter()
 
 
+@router.post("", response_model=schemas.CycleOut)
 @router.post("/", response_model=schemas.CycleOut)
 def create_cycle(
     cycle_in: schemas.CycleCreate,
@@ -29,6 +30,7 @@ def create_cycle(
     return cycle
 
 
+@router.get("", response_model=List[schemas.CycleOut])
 @router.get("/", response_model=List[schemas.CycleOut])
 def read_active_cycles(
     db: Session = Depends(get_db),

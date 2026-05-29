@@ -28,6 +28,7 @@ def get_employee_checkin_data(
     )
 
 
+@router.post("", response_model=schemas.CheckinOut)
 @router.post("/", response_model=schemas.CheckinOut)
 def create_manager_checkin(
     checkin_in: schemas.CheckinCreate,

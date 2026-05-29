@@ -84,6 +84,16 @@ export interface DashboardStats {
   }[];
 }
 
+export interface ThrustArea {
+  id: number;
+  name: string;
+}
+
+export async function fetchThrustAreas(): Promise<ThrustArea[]> {
+  const { data } = await api.get<ThrustArea[]>("/thrust-areas");
+  return data;
+}
+
 export async function fetchGoalSheets(): Promise<GoalSheetSummary[]> {
   const { data } = await api.get<GoalSheetSummary[]>("/goals/sheets");
   return data;
@@ -108,7 +118,7 @@ export async function createGoal(payload: {
   target_value?: number;
   thrust_area_id?: number;
 }) {
-  const { data } = await api.post<ApiGoal>("/goals/", payload);
+  const { data } = await api.post<ApiGoal>("/goals", payload);
   return data;
 }
 
@@ -148,7 +158,7 @@ export async function submitManagerCheckin(payload: {
   status: string;
   comment_text?: string;
 }) {
-  const { data } = await api.post("/checkins/", payload);
+  const { data } = await api.post("/checkins", payload);
   return data;
 }
 
@@ -173,7 +183,7 @@ export async function logAchievement(payload: {
   actual_value?: number;
   narrative?: string;
 }) {
-  const { data } = await api.post("/achievements/", payload);
+  const { data } = await api.post("/achievements", payload);
   return data;
 }
 

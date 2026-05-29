@@ -1,20 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, Plus, AlertTriangle, Save } from "lucide-react";
-import { createGoal, fetchCurrentSheet, submitGoalSheet } from "@/lib/goal-api";
+import { useSession } from "next-auth/react";
+import { Trash2, Plus, AlertTriangle, Save, CheckCircle2, Clock } from "lucide-react";
+import {
+  createGoal,
+  fetchCurrentSheet,
+  fetchThrustAreas,
+  submitGoalSheet,
+  type GoalSheetDetail,
+  type ThrustArea,
+} from "@/lib/goal-api";
+import { apiErrorMessage } from "@/lib/api";
 import { goalSheetSchema, type GoalFormValues } from "@/lib/validators";
 import { UoMSelector, type UoMType } from "@/components/goals/UoMSelector";
 
-const THRUST_AREAS = ["Sales Revenue", "Operational TAT", "Safety Compliance"];
-
 type GoalItem = GoalFormValues;
 
-const emptyGoal = (): GoalItem => ({
+const emptyGoal = (defaultThrustAreaId: number): GoalItem => ({
   title: "",
   description: "",
-  thrustArea: THRUST_AREAS[0],
+  thrustAreaId: defaultThrustAreaId,
   uom: "Min (Numeric / %)",
   target: "100",
   weightage: 10,
@@ -23,9 +31,58 @@ const emptyGoal = (): GoalItem => ({
 
 export default function NewGoalSheet() {
   const router = useRouter();
-  const [goals, setGoals] = useState<GoalItem[]>([emptyGoal()]);
+  const { status } = useSession();
+  const [thrustAreas, setThrustAreas] = useState<ThrustArea[]>([]);
+  const [areasLoading, setAreasLoading] = useState(true);
+  const [goals, setGoals] = useState<GoalItem[]>([]);
   const [errorLog, setErrorLog] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [currentSheet, setCurrentSheet] = useState<GoalSheetDetail | null>(null);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (status !== "authenticated") {
+      setAreasLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setAreasLoading(true);
+    setLoadError(null);
+    (async () => {
+      try {
+        const [areas, sheet] = await Promise.all([fetchThrustAreas(), fetchCurrentSheet()]);
+        if (cancelled) return;
+        setThrustAreas(areas);
+        setCurrentSheet(sheet);
+
+        if (sheet.status === "DRAFT" && sheet.goals.length > 0) {
+          router.replace(`/employee/goals/${sheet.id}`);
+          return;
+        }
+
+        if (sheet.status !== "DRAFT") {
+          return;
+        }
+
+        if (areas.length > 0) {
+          setGoals([emptyGoal(areas[0].id)]);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(
+            apiErrorMessage(err, "Could not load thrust areas. Check API connection and sign-in.")
+          );
+        }
+      } finally {
+        if (!cancelled) setAreasLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
 
   const calculateTotalWeight = () =>
     goals.reduce((sum, g) => sum + (g.weightage || 0), 0);
@@ -35,7 +92,8 @@ export default function NewGoalSheet() {
       setErrorLog("Maximum 8 goals per sheet.");
       return;
     }
-    setGoals([...goals, emptyGoal()]);
+    const defaultId = thrustAreas[0]?.id ?? goals[0]?.thrustAreaId ?? 1;
+    setGoals([...goals, emptyGoal(defaultId)]);
     setErrorLog(null);
   };
 
@@ -64,7 +122,17 @@ export default function NewGoalSheet() {
     setSubmitting(true);
     setErrorLog(null);
     try {
-      const sheet = await fetchCurrentSheet();
+      const sheet = currentSheet ?? (await fetchCurrentSheet());
+      if (sheet.status !== "DRAFT") {
+        setErrorLog(`Cannot modify goals. Sheet is ${sheet.status}.`);
+        return;
+      }
+      if (sheet.goals.length > 0) {
+        setErrorLog(
+          "This sheet already has saved goals. Open it from My Performance Trackers to view status."
+        );
+        return;
+      }
       for (const item of parsed.data) {
         const targetNum = parseFloat(item.target);
         await createGoal({
@@ -74,25 +142,87 @@ export default function NewGoalSheet() {
           goal_sheet_id: sheet.id,
           uom_type: item.uom,
           target_value: Number.isNaN(targetNum) ? undefined : targetNum,
-          // TODO: resolve thrust area name -> id via /thrust-areas endpoint when available
+          thrust_area_id: item.thrustAreaId,
         });
       }
       await submitGoalSheet(sheet.id);
       router.push("/employee/goals");
     } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-          : null;
       setErrorLog(
-        typeof message === "string"
-          ? message
-          : "Failed to save goals. Check API connection and sheet status."
+        apiErrorMessage(err, "Failed to save goals. Check API connection and sheet status.")
       );
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (areasLoading) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto text-sm text-slate-500">Loading thrust areas…</div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+        {loadError}
+      </div>
+    );
+  }
+
+  if (thrustAreas.length === 0) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto text-sm text-rose-700">
+        No thrust areas in the database. Run{" "}
+        <code className="text-xs bg-rose-100 px-1 rounded">python scripts/seed.py</code> from the
+        backend folder (with Postgres up), then refresh.
+      </div>
+    );
+  }
+
+  if (currentSheet && currentSheet.status !== "DRAFT") {
+    const isApproved = currentSheet.status === "APPROVED";
+    return (
+      <div className="p-6 max-w-2xl mx-auto space-y-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm text-center space-y-4">
+          <div
+            className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${
+              isApproved ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"
+            }`}
+          >
+            {isApproved ? (
+              <CheckCircle2 className="h-7 w-7" />
+            ) : (
+              <Clock className="h-7 w-7" />
+            )}
+          </div>
+          <h1 className="text-xl font-bold text-slate-900">
+            {isApproved ? "Goal sheet approved" : "Goal sheet submitted"}
+          </h1>
+          <p className="text-sm text-slate-600">
+            {isApproved
+              ? "Your manager has approved this cycle’s goals. You can log quarterly progress from your tracker list."
+              : "Your goals are with your manager for approval. You cannot edit them until the sheet is returned to draft."}
+          </p>
+          <p className="text-xs text-slate-500">
+            {currentSheet.goals.length} goal(s) · {currentSheet.total_weightage}% total weight
+          </p>
+          <Link
+            href={`/employee/goals/${currentSheet.id}`}
+            className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+          >
+            View submitted sheet
+          </Link>
+          <Link
+            href="/employee/goals"
+            className="block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Back to My Performance Trackers
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto w-full space-y-6">
@@ -129,13 +259,15 @@ export default function NewGoalSheet() {
                 <div>
                   <label className="text-xs font-semibold text-slate-500 uppercase">Thrust area</label>
                   <select
-                    value={item.thrustArea}
-                    onChange={(e) => handleValueChange(idx, "thrustArea", e.target.value)}
+                    value={item.thrustAreaId}
+                    onChange={(e) =>
+                      handleValueChange(idx, "thrustAreaId", parseInt(e.target.value, 10))
+                    }
                     className="mt-1 w-full rounded-lg border-slate-200 text-sm"
                   >
-                    {THRUST_AREAS.map((a) => (
-                      <option key={a} value={a}>
-                        {a}
+                    {thrustAreas.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
                       </option>
                     ))}
                   </select>
