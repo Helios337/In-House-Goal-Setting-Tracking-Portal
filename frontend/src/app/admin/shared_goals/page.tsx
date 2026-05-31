@@ -1,26 +1,21 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Share2, Users, AlertCircle } from "lucide-react";
-import { adminCascadeKpi, fetchCascadeOptions, type CascadeOption } from "@/lib/goal-api";
+import { adminCascadeKpi } from "@/lib/goal-api";
+import { invalidateGoalsCache } from "@/lib/invalidate-cache";
+import { useCascadeOptions } from "@/hooks/useGoalQueries";
+import { apiErrorMessage } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function SharedKPIBroadcastWorkspace() {
-  const [options, setOptions] = useState<CascadeOption[]>([]);
+  const { options, isLoading, isError } = useCascadeOptions();
   const [managerId, setManagerId] = useState<number | "">("");
   const [goalId, setGoalId] = useState<number | "">("");
   const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchCascadeOptions()
-      .then(setOptions)
-      .catch(() => setError("Could not load cascade options."))
-      .finally(() => setLoading(false));
-  }, []);
 
   const selectedManager = options.find((o) => o.manager_id === managerId);
 
@@ -45,24 +40,29 @@ export default function SharedKPIBroadcastWorkspace() {
         goal_id: Number(goalId),
         employee_ids: selectedEmployees,
       });
+      await invalidateGoalsCache();
       setMessage(
         `Cascade complete: ${result.pushed?.length ?? 0} pushed, ${result.skipped?.length ?? 0} skipped.`
       );
       setSelectedEmployees([]);
-    } catch {
-      setError("Failed to cascade KPI to selected employees.");
+    } catch (err) {
+      setError(apiErrorMessage(err, "Failed to cascade KPI to selected employees."));
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center p-12">
         <Spinner size="lg" />
       </div>
     );
   }
+
+  const loadError = isError
+    ? apiErrorMessage(isError, "Could not load cascade options.")
+    : error;
 
   return (
     <div className="p-6 max-w-4xl mx-auto w-full space-y-6">
@@ -75,9 +75,9 @@ export default function SharedKPIBroadcastWorkspace() {
         </p>
       </div>
 
-      {error && (
+      {loadError && (
         <p className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3">
-          {error}
+          {loadError}
         </p>
       )}
       {message && (

@@ -13,6 +13,7 @@ interface RoleGuardProps {
 export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [authorized, setAuthorized] = React.useState(false);
 
   React.useEffect(() => {
     if (status === "loading") return;
@@ -22,16 +23,18 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
       return;
     }
 
-    // Check if the user has at least one of the allowed roles
-    const userRoles = session?.user?.roles || ["Employee"];
+    const userRoles = session?.user?.roles ?? ["Employee"];
     const hasAccess = userRoles.some((role: string) => allowedRoles.includes(role));
 
     if (!hasAccess) {
-      router.push("/unauthorized"); // Or redirect to their specific dashboard
+      router.push("/unauthorized");
+      return;
     }
+
+    setAuthorized(true);
   }, [session, status, allowedRoles, router]);
 
-  if (status === "loading") {
+  if (status === "loading" || !authorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Spinner size="lg" className="text-blue-600" />

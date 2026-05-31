@@ -5,15 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Trash2, Plus, AlertTriangle, Save, CheckCircle2, Clock } from "lucide-react";
-import {
-  createGoal,
-  fetchCurrentSheet,
-  fetchThrustAreas,
-  submitGoalSheet,
-  type GoalSheetDetail,
-  type ThrustArea,
-} from "@/lib/goal-api";
+import { createGoal, fetchCurrentSheet, submitGoalSheet } from "@/lib/goal-api";
 import { apiErrorMessage } from "@/lib/api";
+import { invalidateGoalsCache } from "@/lib/invalidate-cache";
+import { useCurrentSheet, useThrustAreas } from "@/hooks/useGoalQueries";
 import { goalSheetSchema, type GoalFormValues } from "@/lib/validators";
 import { UoMSelector, type UoMType } from "@/components/goals/UoMSelector";
 
@@ -32,57 +27,44 @@ const emptyGoal = (defaultThrustAreaId: number): GoalItem => ({
 export default function NewGoalSheet() {
   const router = useRouter();
   const { status } = useSession();
-  const [thrustAreas, setThrustAreas] = useState<ThrustArea[]>([]);
-  const [areasLoading, setAreasLoading] = useState(true);
+  const authenticated = status === "authenticated";
+  const { thrustAreas, isLoading: areasLoading, isError: areasError } = useThrustAreas(
+    authenticated
+  );
+  const { currentSheet, isLoading: sheetLoading } = useCurrentSheet(authenticated);
+
   const [goals, setGoals] = useState<GoalItem[]>([]);
   const [errorLog, setErrorLog] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [currentSheet, setCurrentSheet] = useState<GoalSheetDetail | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (status !== "authenticated") {
-      setAreasLoading(false);
+    if (!authenticated || areasLoading || sheetLoading || initialized) return;
+
+    if (currentSheet?.status === "DRAFT" && currentSheet.goals.length > 0) {
+      router.replace(`/employee/goals/${currentSheet.id}`);
       return;
     }
 
-    let cancelled = false;
-    setAreasLoading(true);
-    setLoadError(null);
-    (async () => {
-      try {
-        const [areas, sheet] = await Promise.all([fetchThrustAreas(), fetchCurrentSheet()]);
-        if (cancelled) return;
-        setThrustAreas(areas);
-        setCurrentSheet(sheet);
+    if (currentSheet?.status === "DRAFT" && thrustAreas.length > 0 && goals.length === 0) {
+      setGoals([emptyGoal(thrustAreas[0].id)]);
+    }
 
-        if (sheet.status === "DRAFT" && sheet.goals.length > 0) {
-          router.replace(`/employee/goals/${sheet.id}`);
-          return;
-        }
+    setInitialized(true);
+  }, [
+    authenticated,
+    areasLoading,
+    sheetLoading,
+    currentSheet,
+    thrustAreas,
+    goals.length,
+    initialized,
+    router,
+  ]);
 
-        if (sheet.status !== "DRAFT") {
-          return;
-        }
-
-        if (areas.length > 0) {
-          setGoals([emptyGoal(areas[0].id)]);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setLoadError(
-            apiErrorMessage(err, "Could not load thrust areas. Check API connection and sign-in.")
-          );
-        }
-      } finally {
-        if (!cancelled) setAreasLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [status]);
+  const loadError = areasError
+    ? apiErrorMessage(areasError, "Could not load thrust areas. Check API connection and sign-in.")
+    : null;
 
   const calculateTotalWeight = () =>
     goals.reduce((sum, g) => sum + (g.weightage || 0), 0);
@@ -146,6 +128,7 @@ export default function NewGoalSheet() {
         });
       }
       await submitGoalSheet(sheet.id);
+      await invalidateGoalsCache();
       router.push("/employee/goals");
     } catch (err: unknown) {
       setErrorLog(
@@ -156,7 +139,7 @@ export default function NewGoalSheet() {
     }
   };
 
-  if (areasLoading) {
+  if (status === "loading" || areasLoading || sheetLoading) {
     return (
       <div className="p-6 max-w-6xl mx-auto text-sm text-slate-500">Loading thrust areas…</div>
     );

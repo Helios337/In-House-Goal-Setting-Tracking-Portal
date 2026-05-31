@@ -29,3 +29,15 @@ export const goalSheetSchema = z.array(goalSchema)
   );
 
 export type GoalFormValues = z.infer<typeof goalSchema>;
+
+const uomEnum = z.enum(["Min (Numeric / %)", "Max (Numeric / %)", "Timeline", "Zero"]);
+
+/** Validates the standalone GoalForm component (string thrust area field). */
+export const goalFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  thrustArea: z.string().min(1, "Thrust Area is required"),
+  uom: uomEnum.or(z.literal("")).refine((v) => v !== "", { message: "UoM is required" }),
+  target: z.string().min(1, "Target is required"),
+  weightage: z.number().min(10, "Minimum weightage is 10%").max(100),
+});

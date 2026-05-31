@@ -1,11 +1,14 @@
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { enforceRole } from "@/lib/auth";
 import { UI_ROLES } from "@/lib/roles";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await enforceRole([UI_ROLES.admin]);
+
   return (
     <DashboardShell allowedRoles={[UI_ROLES.admin]}>
       {children}

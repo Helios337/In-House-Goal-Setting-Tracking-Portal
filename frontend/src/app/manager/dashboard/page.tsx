@@ -1,33 +1,32 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { Users, RefreshCcw, LayoutDashboard, ArrowRight, ClipboardCheck } from "lucide-react";
-import {
-  fetchPendingApprovals,
-  fetchTeamForCheckin,
-  type PendingApproval,
-  type TeamMemberSummary,
-} from "@/lib/goal-api";
+import { usePendingApprovals, useTeamForCheckin } from "@/hooks/useGoalQueries";
+import { apiErrorMessage } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function ManagerDashboard() {
-  const [teamSheets, setTeamSheets] = useState<PendingApproval[]>([]);
-  const [checkinTeam, setCheckinTeam] = useState<TeamMemberSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    pendingApprovals: teamSheets,
+    isLoading: pendingLoading,
+    isError: pendingError,
+  } = usePendingApprovals();
+  const {
+    checkinTeam,
+    isLoading: teamLoading,
+    isError: teamError,
+  } = useTeamForCheckin();
 
-  useEffect(() => {
-    Promise.all([fetchPendingApprovals(), fetchTeamForCheckin()])
-      .then(([pending, team]) => {
-        setTeamSheets(pending);
-        setCheckinTeam(team);
-      })
-      .catch(() =>
-        setError("Could not load team queue. Sign in as manager@demo.example.com.")
-      )
-      .finally(() => setLoading(false));
-  }, []);
+  const loading = pendingLoading || teamLoading;
+  const error =
+    pendingError || teamError
+      ? apiErrorMessage(
+          pendingError ?? teamError,
+          "Could not load team queue. Sign in as manager@demo.example.com."
+        )
+      : null;
 
   if (loading) {
     return (

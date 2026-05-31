@@ -1,38 +1,26 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { MessageSquare, ShieldCheck, ArrowLeft } from "lucide-react";
-import {
-  fetchEmployeeCheckinData,
-  submitManagerCheckin,
-  type EmployeeGoalMetric,
-} from "@/lib/goal-api";
+import { submitManagerCheckin } from "@/lib/goal-api";
+import { invalidateGoalsCache } from "@/lib/invalidate-cache";
+import { useEmployeeCheckin } from "@/hooks/useGoalQueries";
+import { apiErrorMessage } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function QuarterlyCheckInModule() {
   const params = useParams();
   const router = useRouter();
   const employeeId = Number(params.employeeId);
+  const { checkinData, isLoading, isError } = useEmployeeCheckin(employeeId);
   const [commentary, setCommentary] = useState("");
-  const [metrics, setMetrics] = useState<EmployeeGoalMetric[]>([]);
-  const [goalSheetId, setGoalSheetId] = useState<number | null>(null);
-  const [employeeEmail, setEmployeeEmail] = useState("");
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!employeeId || Number.isNaN(employeeId)) return;
-    fetchEmployeeCheckinData(employeeId)
-      .then((ctx) => {
-        setMetrics(ctx.goals);
-        setGoalSheetId(ctx.goal_sheet_id);
-        setEmployeeEmail(ctx.employee_email);
-      })
-      .catch(() => setError("Could not load employee check-in data."))
-      .finally(() => setLoading(false));
-  }, [employeeId]);
+  const metrics = checkinData?.goals ?? [];
+  const goalSheetId = checkinData?.goal_sheet_id ?? null;
+  const employeeEmail = checkinData?.employee_email ?? "";
 
   const handleSubmitCheckinLog = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,19 +37,28 @@ export default function QuarterlyCheckInModule() {
         status: "COMPLETED",
         comment_text: commentary.trim(),
       });
+      await invalidateGoalsCache();
       router.push("/manager/dashboard");
-    } catch {
-      setError("Failed to save check-in.");
+    } catch (err) {
+      setError(apiErrorMessage(err, "Failed to save check-in."));
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center p-12">
         <Spinner size="lg" />
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <p className="p-6 text-rose-600">
+        {apiErrorMessage(isError, "Could not load employee check-in data.")}
+      </p>
     );
   }
 

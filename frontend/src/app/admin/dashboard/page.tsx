@@ -1,19 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { fetchDashboard, type DashboardStats } from "@/lib/goal-api";
+import React from "react";
+import { useDashboardStats } from "@/hooks/useGoalQueries";
 import { CompletionHeatmap } from "@/components/reports/CompletionHeatmap";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function AdminGovernanceDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { stats, isLoading } = useDashboardStats();
 
-  useEffect(() => {
-    fetchDashboard().then(setStats).finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center p-12">
         <Spinner size="lg" />

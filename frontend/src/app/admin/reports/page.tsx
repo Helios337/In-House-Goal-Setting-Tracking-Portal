@@ -1,17 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { fetchDashboard, downloadReportCsv, type DashboardStats } from "@/lib/goal-api";
-import { ExportButton } from "@/components/reports/ExportButton";
+import React from "react";
+import { downloadReportCsv } from "@/lib/goal-api";
+import { useDashboardStats } from "@/hooks/useGoalQueries";
+import { ExportButton, type ExportRow } from "@/components/reports/ExportButton";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function AdminReportsPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDashboard().then(setStats).finally(() => setLoading(false));
-  }, []);
+  const { stats, isLoading } = useDashboardStats();
 
   const handleApiExport = async () => {
     const blob = await downloadReportCsv();
@@ -23,7 +19,7 @@ export default function AdminReportsPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center p-12">
         <Spinner size="lg" />
@@ -31,7 +27,7 @@ export default function AdminReportsPage() {
     );
   }
 
-  const exportRows =
+  const exportRows: ExportRow[] =
     stats?.reports.map((r) => ({
       email: r.user_email,
       goal: r.goal_title,

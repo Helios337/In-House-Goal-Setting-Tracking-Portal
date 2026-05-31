@@ -2,34 +2,33 @@
 
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
+import { domainEventSchema, type DomainEventMessage } from "@/lib/api-schemas";
+import { parseApi } from "@/lib/parse-api";
 import { useToast } from "@/providers/RealtimeProvider";
-
-export interface DomainEventMessage {
-  type: string;
-  actor_id?: number;
-  resource_type?: string;
-  resource_id?: number;
-  payload?: Record<string, unknown>;
-  timestamp?: string;
-}
 
 const EVENT_MUTATE_MAP: Record<string, string[]> = {
   "goal.sheet.submitted": [
     "/goals/manager/pending-approvals",
+    "/goals/sheets",
+    "/goals/sheets/current",
     "/team-goals",
   ],
-  "goal.sheet.approved": ["/goals/current", "/goals"],
-  "goal.updated": ["/goals/current", "/goals"],
-  "shared_kpi.pushed": ["/goals/current", "/shared-goals"],
-  "shared_kpi.synced": ["/goals/current", "/shared-goals"],
-  "checkin.created": ["/checkins", "/goals/current"],
-  "achievement.updated": ["/goals/current", "/achievements"],
+  "goal.sheet.approved": [
+    "/goals/sheets/current",
+    "/goals/sheets",
+    "/checkins/team",
+  ],
+  "goal.updated": ["/goals/sheets/current", "/goals/sheets"],
+  "shared_kpi.pushed": ["/goals/sheets/current", "/shared-goals/cascade-options"],
+  "shared_kpi.synced": ["/goals/sheets/current", "/shared-goals/cascade-options"],
+  "checkin.created": ["/checkins/team", "/goals/sheets/current"],
+  "achievement.updated": ["/goals/sheets/current", "/achievements"],
   "notification.created": ["/notifications"],
   "escalation.created": ["/notifications"],
 };
 
 function invalidateForEvent(event: DomainEventMessage) {
-  const keys = EVENT_MUTATE_MAP[event.type] || [];
+  const keys = EVENT_MUTATE_MAP[event.type] ?? [];
   keys.forEach((key) => {
     mutate((cacheKey) => typeof cacheKey === "string" && cacheKey.startsWith(key));
   });
@@ -47,14 +46,14 @@ export function useRealtime(enabled: boolean = true) {
 
     source.onmessage = (event) => {
       try {
-        const data: DomainEventMessage = JSON.parse(event.data);
+        const raw: unknown = JSON.parse(event.data);
+        const data = parseApi(domainEventSchema, raw, "domain event");
         if (data.type === "heartbeat" || data.type === "connected") return;
 
         invalidateForEvent(data);
 
         if (data.type === "notification.created") {
-          const title =
-            (data.payload?.title as string) || "New notification";
+          const title = (data.payload?.title as string) || "New notification";
           showToast(title, "info");
         } else if (data.type === "goal.sheet.submitted") {
           showToast("A team member submitted goals for approval", "info");
@@ -81,3 +80,5 @@ export function useRealtime(enabled: boolean = true) {
     };
   }, [enabled, showToast]);
 }
+
+export type { DomainEventMessage };

@@ -1,46 +1,25 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { api, apiErrorMessage } from "@/lib/api";
-import { Spinner } from "@/components/ui/Spinner";
+import React from "react";
 import { useSession } from "next-auth/react";
-
-interface Cycle {
-  id: number;
-  name: string;
-  start_date: string;
-  end_date: string;
-}
+import { useCycles } from "@/hooks/useGoalQueries";
+import { apiErrorMessage } from "@/lib/api";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function CycleSettingsPage() {
   const { status } = useSession();
-  const [cycles, setCycles] = useState<Cycle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const authenticated = status === "authenticated";
+  const { cycles, isLoading, isError } = useCycles(authenticated);
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (status !== "authenticated") {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    api
-      .get<Cycle[]>("/cycles")
-      .then((res) => setCycles(res.data))
-      .catch((err) => setError(apiErrorMessage(err, "Failed to load cycles.")))
-      .finally(() => setLoading(false));
-  }, [status]);
-
-  if (loading) {
+  if (status === "loading" || isLoading) {
     return (
       <div className="flex justify-center p-12">
         <Spinner size="lg" />
       </div>
     );
   }
+
+  const error = isError ? apiErrorMessage(isError, "Failed to load cycles.") : null;
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">

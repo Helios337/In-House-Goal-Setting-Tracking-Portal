@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Plus, ClipboardList, CheckCircle2, AlertCircle, FileEdit } from "lucide-react";
-import { fetchCurrentSheet, fetchGoalSheets, type GoalSheetSummary } from "@/lib/goal-api";
+import { useCurrentSheet, useGoalSheets } from "@/hooks/useGoalQueries";
 import { apiErrorMessage } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -16,33 +16,26 @@ function formatStatus(status: string) {
 
 export default function GoalsListPage() {
   const { status } = useSession();
-  const [goalSheets, setGoalSheets] = useState<GoalSheetSummary[]>([]);
-  const [currentSheetStatus, setCurrentSheetStatus] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const authenticated = status === "authenticated";
+  const {
+    goalSheets,
+    isLoading: sheetsLoading,
+    isError: sheetsError,
+  } = useGoalSheets();
+  const {
+    currentSheet,
+    isLoading: currentLoading,
+    isError: currentError,
+  } = useCurrentSheet(authenticated);
 
-  const canCreateNewSheet =
-    currentSheetStatus === null || currentSheetStatus === "DRAFT";
+  const loading = status === "loading" || (authenticated && (sheetsLoading || currentLoading));
+  const error =
+    sheetsError || currentError
+      ? apiErrorMessage(sheetsError ?? currentError, "Could not load goal sheets.")
+      : null;
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (status !== "authenticated") {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    Promise.all([fetchGoalSheets(), fetchCurrentSheet()])
-      .then(([sheets, current]) => {
-        setGoalSheets(sheets);
-        setCurrentSheetStatus(current.status);
-      })
-      .catch((err) =>
-        setError(apiErrorMessage(err, "Could not load goal sheets."))
-      )
-      .finally(() => setLoading(false));
-  }, [status]);
+  const currentSheetStatus = currentSheet?.status ?? null;
+  const canCreateNewSheet = currentSheetStatus === null || currentSheetStatus === "DRAFT";
 
   if (loading) {
     return (

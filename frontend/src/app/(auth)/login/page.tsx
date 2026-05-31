@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSession, signIn } from "next-auth/react";
 import { Shield, Key, LogIn } from "lucide-react";
 import {
@@ -11,17 +11,28 @@ import {
   type UiRoleKey,
 } from "@/lib/roles";
 
-export default function LoginPage() {
+const isDemoMode =
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === "true";
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionExpired = searchParams.get("expired") === "1";
+
   const [role, setRole] = useState<UiRoleKey>("employee");
-  const [email, setEmail] = useState(DEMO_LOGIN_BY_ROLE.employee.email);
-  const [password, setPassword] = useState("demo123");
+  const [email, setEmail] = useState(
+    isDemoMode ? DEMO_LOGIN_BY_ROLE.employee.email : ""
+  );
+  const [password, setPassword] = useState(isDemoMode ? "demo123" : "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleRoleChange = (nextRole: UiRoleKey) => {
     setRole(nextRole);
-    setEmail(DEMO_LOGIN_BY_ROLE[nextRole].email);
+    if (isDemoMode) {
+      setEmail(DEMO_LOGIN_BY_ROLE[nextRole].email);
+    }
   };
 
   const handleStandardLogin = async (e: React.FormEvent) => {
@@ -66,6 +77,12 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {sessionExpired && (
+          <p className="rounded-lg bg-amber-900/40 border border-amber-700 px-3 py-2 text-sm text-amber-200">
+            Your session expired. Please sign in again.
+          </p>
+        )}
+
         {error && (
           <p className="rounded-lg bg-rose-900/40 border border-rose-700 px-3 py-2 text-sm text-rose-200">
             {error}
@@ -74,26 +91,27 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleStandardLogin}>
           <div className="space-y-4 rounded-md shadow-sm">
-            <div>
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                Sign in as
-              </label>
-              <select
-                value={role}
-                onChange={(e) => handleRoleChange(e.target.value as UiRoleKey)}
-                className="mt-1 block w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {(Object.keys(DEMO_LOGIN_BY_ROLE) as UiRoleKey[]).map((key) => (
-                  <option key={key} value={key}>
-                    {DEMO_LOGIN_BY_ROLE[key].label}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1.5 text-xs text-slate-500">
-                Picks the demo account for that role. Your access comes from the account in the
-                database, not from this dropdown alone.
-              </p>
-            </div>
+            {isDemoMode && (
+              <div>
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                  Sign in as
+                </label>
+                <select
+                  value={role}
+                  onChange={(e) => handleRoleChange(e.target.value as UiRoleKey)}
+                  className="mt-1 block w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  {(Object.keys(DEMO_LOGIN_BY_ROLE) as UiRoleKey[]).map((key) => (
+                    <option key={key} value={key}>
+                      {DEMO_LOGIN_BY_ROLE[key].label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-xs text-slate-500">
+                  Demo mode: picks a seeded account for the selected role.
+                </p>
+              </div>
+            )}
             <div>
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 Corporate Email
@@ -125,9 +143,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 text-center">
-            Demo password for all seeded users: <span className="text-slate-400">demo123</span>
-          </p>
+          {isDemoMode && (
+            <p className="text-xs text-slate-500 text-center">
+              Demo password for seeded users: <span className="text-slate-400">demo123</span>
+            </p>
+          )}
 
           <button
             type="submit"
@@ -160,5 +180,19 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-slate-900 text-slate-400">
+          Loading…
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

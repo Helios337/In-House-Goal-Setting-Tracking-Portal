@@ -1,24 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams } from "next/navigation";
-import { fetchGoalSheet, type GoalSheetDetail } from "@/lib/goal-api";
+import { useGoalSheet } from "@/hooks/useGoalQueries";
+import { apiErrorMessage } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function GoalSheetDetailPage() {
   const params = useParams();
   const sheetId = Number(params.id);
-  const [sheet, setSheet] = useState<GoalSheetDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { sheet, isLoading, isError } = useGoalSheet(sheetId);
 
-  useEffect(() => {
-    if (!sheetId || Number.isNaN(sheetId)) return;
-    fetchGoalSheet(sheetId)
-      .then(setSheet)
-      .catch(() => setError("Could not load goal sheet."));
-  }, [sheetId]);
-
-  if (!sheet && !error) {
+  if (isLoading) {
     return (
       <div className="flex justify-center p-12">
         <Spinner size="lg" />
@@ -26,8 +19,12 @@ export default function GoalSheetDetailPage() {
     );
   }
 
-  if (error || !sheet) {
-    return <p className="p-6 text-rose-600">{error}</p>;
+  if (isError || !sheet) {
+    return (
+      <p className="p-6 text-rose-600">
+        {apiErrorMessage(isError, "Could not load goal sheet.")}
+      </p>
+    );
   }
 
   return (

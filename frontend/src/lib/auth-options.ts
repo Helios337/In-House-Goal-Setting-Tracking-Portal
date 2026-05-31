@@ -3,14 +3,9 @@ import type { NextAuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { backendTokenSchema } from "@/lib/api-schemas";
+import { parseApi } from "@/lib/parse-api";
 import { backendRoleToUi } from "@/lib/roles";
-
-interface BackendTokenResponse {
-  access_token: string;
-  user_id: number;
-  role?: string;
-  email?: string;
-}
 
 function apiBaseUrl(): string {
   return (
@@ -20,10 +15,7 @@ function apiBaseUrl(): string {
   );
 }
 
-async function loginWithPassword(
-  email: string,
-  password: string
-): Promise<BackendTokenResponse | null> {
+async function loginWithPassword(email: string, password: string) {
   const body = new URLSearchParams();
   body.set("username", email);
   body.set("password", password);
@@ -37,14 +29,15 @@ async function loginWithPassword(
   if (!response.ok) {
     return null;
   }
-  return response.json();
+  const json: unknown = await response.json();
+  return parseApi(backendTokenSchema, json, "auth login");
 }
 
 async function exchangeSsoToken(
   email: string,
   name?: string | null,
   idToken?: string | null
-): Promise<BackendTokenResponse | null> {
+) {
   const response = await fetch(`${apiBaseUrl()}/api/v1/auth/sso`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -59,7 +52,8 @@ async function exchangeSsoToken(
   if (!response.ok) {
     return null;
   }
-  return response.json();
+  const json: unknown = await response.json();
+  return parseApi(backendTokenSchema, json, "auth sso");
 }
 
 export const authOptions: NextAuthOptions = {

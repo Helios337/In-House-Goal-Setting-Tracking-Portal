@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getSession } from "next-auth/react";
+import { getAccessToken } from "@/lib/session-token";
 
 /** Browser calls same-origin `/api/v1` (Next.js rewrite → backend). Server/SSR uses API_BASE_URL. */
 export function resolveApiBaseUrl(): string {
@@ -20,11 +20,13 @@ export const api = axios.create({
   },
 });
 
+let handling401 = false;
+
 api.interceptors.request.use(
   async (config) => {
-    const session = await getSession();
-    if (session?.user?.accessToken) {
-      config.headers.Authorization = `Bearer ${session.user.accessToken}`;
+    const token = await getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -34,9 +36,16 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      const pathname = window.location.pathname;
+      if (!pathname.startsWith("/login") && !handling401) {
+        handling401 = true;
+        try {
+          const { signOut } = await import("next-auth/react");
+          await signOut({ redirect: false });
+        } finally {
+          window.location.href = "/login?expired=1";
+        }
       }
     }
     return Promise.reject(error);
@@ -49,7 +58,7 @@ export function apiErrorMessage(err: unknown, fallback: string): string {
       return "Could not reach the API. Check that the backend is running and NEXT_PUBLIC_API_URL / API_BASE_URL match your setup.";
     }
     if (err.response.status === 401) {
-      return "Not authorized. Sign out and sign in again.";
+      return "Session expired. Please sign in again.";
     }
     const detail = err.response.data?.detail;
     if (typeof detail === "string") return detail;

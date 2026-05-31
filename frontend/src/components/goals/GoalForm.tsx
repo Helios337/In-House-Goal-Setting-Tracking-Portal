@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { goalFormSchema } from "@/lib/validators";
 import { UoMSelector, UoMType } from "./UoMSelector";
 
 export interface GoalFormData {
@@ -18,7 +19,7 @@ interface GoalFormProps {
   initialData?: Partial<GoalFormData>;
   onSubmit: (data: GoalFormData) => void;
   onCancel: () => void;
-  isSharedGoal?: boolean; // If shared, recipient can only adjust weightage
+  isSharedGoal?: boolean;
 }
 
 export function GoalForm({ initialData, onSubmit, onCancel, isSharedGoal }: GoalFormProps) {
@@ -34,15 +35,20 @@ export function GoalForm({ initialData, onSubmit, onCancel, isSharedGoal }: Goal
   const [errors, setErrors] = React.useState<Partial<Record<keyof GoalFormData, string>>>({});
 
   const validate = () => {
-    const newErrors: any = {};
-    if (!formData.title) newErrors.title = "Title is required";
-    if (!formData.thrustArea) newErrors.thrustArea = "Thrust Area is required";
-    if (!formData.uom) newErrors.uom = "UoM is required";
-    if (!formData.target) newErrors.target = "Target is required";
-    // Enforce Minimum weightage per individual goal: 10% rule
-    if (formData.weightage < 10) newErrors.weightage = "Minimum weightage is 10%"; 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const result = goalFormSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Partial<Record<keyof GoalFormData, string>> = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof GoalFormData;
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      }
+      setErrors(fieldErrors);
+      return false;
+    }
+    setErrors({});
+    return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,10 +62,10 @@ export function GoalForm({ initialData, onSubmit, onCancel, isSharedGoal }: Goal
         label="Goal Title"
         value={formData.title}
         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-        disabled={isSharedGoal} // Shared goal titles are read-only
+        disabled={isSharedGoal}
         error={errors.title}
       />
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Thrust Area"
@@ -81,7 +87,7 @@ export function GoalForm({ initialData, onSubmit, onCancel, isSharedGoal }: Goal
           type={formData.uom === "Timeline" ? "date" : "text"}
           value={formData.target}
           onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-          disabled={isSharedGoal} // Shared targets are read-only
+          disabled={isSharedGoal}
           error={errors.target}
         />
         <Input
@@ -96,8 +102,12 @@ export function GoalForm({ initialData, onSubmit, onCancel, isSharedGoal }: Goal
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
-        <Button variant="primary" type="submit">Save Goal</Button>
+        <Button variant="ghost" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button variant="primary" type="submit">
+          Save Goal
+        </Button>
       </div>
     </form>
   );
