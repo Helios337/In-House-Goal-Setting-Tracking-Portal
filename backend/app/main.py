@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.core.database import SessionLocal
+from app.core.http_handlers import register_exception_handlers
 from app.routers import api_router
 from app.services.escalation_service import run_escalation_checks
 
@@ -39,6 +40,8 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan,
 )
+
+register_exception_handlers(app)
 
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(

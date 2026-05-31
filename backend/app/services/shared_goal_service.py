@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from app import models, schemas
+from app.core.access import assert_manager_of_employee
 from app.events.types import DomainEvent, channel_user, channel_goal
 from app.services.audit_service import log_action
 from app.services.event_bus import publish
@@ -23,6 +24,8 @@ def push_kpi_to_subordinate(
     )
     if not parent_goal:
         raise HTTPException(status_code=404, detail="Parent goal not found.")
+    if parent_goal.owner_id != manager_id:
+        raise HTTPException(status_code=403, detail="Not authorized to share this goal.")
 
     sub_sheet = (
         db.query(models.GoalSheet)
@@ -71,6 +74,15 @@ def sync_linked_goal(db: Session, goal_id: int, new_title: str, actor_id: int):
     goal = db.query(models.Goal).filter(models.Goal.id == goal_id).first()
     if not goal:
         raise HTTPException(status_code=404, detail="Goal not found")
+
+    if goal.owner_id != actor_id:
+        link = (
+            db.query(models.SharedGoal)
+            .filter_by(user_id=actor_id, goal_id=goal_id)
+            .first()
+        )
+        if not link:
+            raise HTTPException(status_code=403, detail="Not authorized to sync this goal")
 
     goal.title = new_title
     db.commit()

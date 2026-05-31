@@ -10,9 +10,15 @@ router = APIRouter()
 
 
 def _format_audit_logs(db: Session, logs: list, total: int, limit: int):
+    user_ids = {log.user_id for log in logs if log.user_id is not None}
+    users = {
+        user.id: user
+        for user in db.query(models.User).filter(models.User.id.in_(user_ids)).all()
+    } if user_ids else {}
+
     entries = []
     for log in logs:
-        user = db.query(models.User).filter(models.User.id == log.user_id).first()
+        user = users.get(log.user_id)
         entries.append(
             {
                 "id": str(log.id),
@@ -31,7 +37,7 @@ def get_audit_trail(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user=Depends(dependencies.get_current_active_user),
+    _admin=Depends(dependencies.require_admin_role),
 ):
     return (
         db.query(models.AuditLog)
@@ -48,7 +54,7 @@ def get_audit_logs_paginated(
     limit: int = 20,
     userId: Optional[int] = None,
     db: Session = Depends(get_db),
-    current_user=Depends(dependencies.get_current_active_user),
+    _admin=Depends(dependencies.require_admin_role),
 ):
     query = db.query(models.AuditLog)
     if userId:

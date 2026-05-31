@@ -3,6 +3,7 @@ from fastapi import HTTPException, BackgroundTasks
 from typing import List, Optional
 
 from app import models, schemas
+from app.core.access import assert_manager_of_employee
 from app.events.types import DomainEvent, channel_user, channel_team, channel_goal
 from app.services.audit_service import log_action
 from app.services.event_bus import publish
@@ -136,13 +137,25 @@ def create_goal(db: Session, goal_in: schemas.GoalCreate, owner_id: int):
     sheet = db.query(models.GoalSheet).filter(models.GoalSheet.id == goal_in.goal_sheet_id).first()
     if not sheet:
         raise HTTPException(status_code=404, detail="Goal Sheet not found")
+    # BOLA guard: goals may only be created on the caller's own sheet
+    if sheet.user_id != owner_id:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this goal sheet")
     require_phase_active(db, GOAL_SETTING_PHASE, sheet.cycle_id)
     check_sheet_lock(db, goal_in.goal_sheet_id)
     validate_goal_count(db, goal_in.goal_sheet_id)
     validate_single_goal_weight(goal_in.weightage)
     validate_weightage(db, goal_in.goal_sheet_id, goal_in.weightage)
 
-    db_goal = models.Goal(**goal_in.model_dump(), owner_id=owner_id)
+    db_goal = models.Goal(
+        title=goal_in.title,
+        description=goal_in.description,
+        weightage=goal_in.weightage,
+        thrust_area_id=goal_in.thrust_area_id,
+        uom_type=goal_in.uom_type,
+        target_value=goal_in.target_value,
+        goal_sheet_id=goal_in.goal_sheet_id,
+        owner_id=owner_id,
+    )
     db.add(db_goal)
     db.commit()
     db.refresh(db_goal)
@@ -242,6 +255,8 @@ def lock_goal_sheet(
                 status_code=400,
                 detail="Only submitted goal sheets can be approved.",
             )
+        # BOLA guard: managers may only approve direct reports' sheets
+        assert_manager_of_employee(db, action_user_id, sheet.user_id)
         validate_sheet_ready_for_submit(db, sheet_id)
         sheet.status = "APPROVED"
         log_action(db, action_user_id, "APPROVE_SHEET", f"GoalSheet:{sheet.id}")
@@ -399,10 +414,26 @@ def get_pending_approvals(db: Session, manager_id: int) -> list[dict]:
         )
         .all()
     )
+    if not sheets:
+        return []
+
+    sheet_ids = [sheet.id for sheet in sheets]
+    user_ids = {sheet.user_id for sheet in sheets}
+
+    employees = {
+        user.id: user
+        for user in db.query(models.User).filter(models.User.id.in_(user_ids)).all()
+    }
+    goals_by_sheet: dict[int, list] = {sid: [] for sid in sheet_ids}
+    for goal in (
+        db.query(models.Goal).filter(models.Goal.goal_sheet_id.in_(sheet_ids)).all()
+    ):
+        goals_by_sheet[goal.goal_sheet_id].append(goal)
+
     result: list[dict] = []
     for sheet in sheets:
-        employee = db.query(models.User).filter(models.User.id == sheet.user_id).first()
-        goals = db.query(models.Goal).filter(models.Goal.goal_sheet_id == sheet.id).all()
+        employee = employees.get(sheet.user_id)
+        goals = goals_by_sheet.get(sheet.id, [])
         serialized_goals = [
             schemas.GoalOut.model_validate(goal).model_dump() for goal in goals
         ]

@@ -4,20 +4,11 @@ from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.core.access import assert_manager_of_employee, assert_manager_of_sheet
 from app.events.types import DomainEvent, channel_user
 from app.services.audit_service import log_action
 from app.services.event_bus import publish
 from app.services.uom_utils import normalize_uom_type
-
-
-def _assert_manager_of(db: Session, manager_id: int, employee_id: int) -> None:
-    hierarchy = (
-        db.query(models.OrgHierarchy)
-        .filter_by(manager_id=manager_id, employee_id=employee_id)
-        .first()
-    )
-    if not hierarchy:
-        raise HTTPException(status_code=403, detail="Not manager for this employee")
 
 
 def get_team_members_for_checkin(db: Session, manager_id: int) -> List[dict]:
@@ -30,20 +21,27 @@ def get_team_members_for_checkin(db: Session, manager_id: int) -> List[dict]:
     if not subordinate_ids:
         return []
 
-    result = []
-    for employee_id in subordinate_ids:
-        employee = db.query(models.User).filter(models.User.id == employee_id).first()
-        sheet = (
-            db.query(models.GoalSheet)
-            .filter(
-                models.GoalSheet.user_id == employee_id,
-                models.GoalSheet.status == "APPROVED",
-            )
-            .order_by(models.GoalSheet.id.desc())
-            .first()
+    employees = {
+        user.id: user
+        for user in db.query(models.User).filter(models.User.id.in_(subordinate_ids)).all()
+    }
+    approved_sheets = (
+        db.query(models.GoalSheet)
+        .filter(
+            models.GoalSheet.user_id.in_(subordinate_ids),
+            models.GoalSheet.status == "APPROVED",
         )
-        if not sheet:
-            continue
+        .order_by(models.GoalSheet.user_id, models.GoalSheet.id.desc())
+        .all()
+    )
+    latest_sheet_by_employee: dict[int, models.GoalSheet] = {}
+    for sheet in approved_sheets:
+        if sheet.user_id not in latest_sheet_by_employee:
+            latest_sheet_by_employee[sheet.user_id] = sheet
+
+    result = []
+    for employee_id, sheet in latest_sheet_by_employee.items():
+        employee = employees.get(employee_id)
         result.append(
             {
                 "employee_id": employee_id,
@@ -58,7 +56,7 @@ def get_team_members_for_checkin(db: Session, manager_id: int) -> List[dict]:
 def get_employee_checkin_context(
     db: Session, manager_id: int, employee_id: int, quarter: str = "Q1"
 ) -> dict:
-    _assert_manager_of(db, manager_id, employee_id)
+    assert_manager_of_employee(db, manager_id, employee_id)
 
     employee = db.query(models.User).filter(models.User.id == employee_id).first()
     if not employee:
@@ -77,13 +75,22 @@ def get_employee_checkin_context(
         raise HTTPException(status_code=404, detail="No approved goal sheet for employee")
 
     goals = db.query(models.Goal).filter(models.Goal.goal_sheet_id == sheet.id).all()
+    goal_ids = [goal.id for goal in goals]
+    achievements = {}
+    if goal_ids:
+        achievements = {
+            ach.goal_id: ach
+            for ach in db.query(models.QuarterlyAchievement)
+            .filter(
+                models.QuarterlyAchievement.goal_id.in_(goal_ids),
+                models.QuarterlyAchievement.quarter == quarter,
+            )
+            .all()
+        }
+
     metrics = []
     for goal in goals:
-        achievement = (
-            db.query(models.QuarterlyAchievement)
-            .filter_by(goal_id=goal.id, quarter=quarter)
-            .first()
-        )
+        achievement = achievements.get(goal.id)
         progress_score = achievement.progress_percentage if achievement else 0.0
         metrics.append(
             {
@@ -112,15 +119,7 @@ def create_checkin(
     checkin_in: schemas.CheckinCreate,
     background_tasks: Optional[BackgroundTasks] = None,
 ):
-    sheet = (
-        db.query(models.GoalSheet)
-        .filter(models.GoalSheet.id == checkin_in.goal_sheet_id)
-        .first()
-    )
-    if not sheet:
-        raise HTTPException(status_code=404, detail="Goal sheet not found")
-
-    _assert_manager_of(db, manager_id, sheet.user_id)
+    sheet = assert_manager_of_sheet(db, manager_id, checkin_in.goal_sheet_id)
 
     checkin = models.ManagerCheckin(
         goal_sheet_id=checkin_in.goal_sheet_id,

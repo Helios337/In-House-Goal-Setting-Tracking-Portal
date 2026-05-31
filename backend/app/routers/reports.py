@@ -14,7 +14,7 @@ router = APIRouter()
 def get_completion_dashboard(
     cycle_id: int | None = None,
     db: Session = Depends(get_db),
-    current_user=Depends(dependencies.get_current_active_user),
+    _admin=Depends(dependencies.require_admin_role),
 ):
     """Return aggregated stats and achievement data for the dashboard."""
     if cycle_id is None:

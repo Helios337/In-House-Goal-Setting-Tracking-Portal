@@ -7,6 +7,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent
 _PROJECT_ROOT = _BACKEND_ROOT.parent
+_INSECURE_SECRET_MARKERS = {
+    "generate_a_secure_random_string_here",
+    "local-dev-secret-change-in-production",
+    "ci-build-secret",
+}
 
 
 class Settings(BaseSettings):
@@ -15,6 +20,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "Goal Management API"
     API_V1_STR: str = "/api/v1"
+    ENVIRONMENT: str = "development"
 
     # Postgres (used to build DATABASE_URL when not set explicitly)
     POSTGRES_USER: str = "goal_user"
@@ -33,6 +39,18 @@ class Settings(BaseSettings):
     def apply_jwt_secret(self):
         if self.JWT_SECRET:
             self.SECRET_KEY = self.JWT_SECRET
+        return self
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self):
+        env = self.ENVIRONMENT.lower()
+        if env in ("production", "prod", "staging"):
+            if self.SECRET_KEY in _INSECURE_SECRET_MARKERS or len(self.SECRET_KEY) < 32:
+                raise ValueError(
+                    "SECRET_KEY/JWT_SECRET must be a strong random value (≥32 chars) in production"
+                )
+            if self.ALLOW_INSECURE_SSO:
+                raise ValueError("ALLOW_INSECURE_SSO must be false in production")
         return self
 
     @model_validator(mode="after")

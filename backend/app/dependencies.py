@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from jose import JWTError
+from sqlalchemy.orm import Session, joinedload
 
 from app import models
 from app.config import settings
@@ -27,10 +28,15 @@ def get_current_user(
         if subject is None:
             raise credentials_exception
         user_id = int(subject)
-    except Exception:
+    except (JWTError, ValueError, TypeError):
         raise credentials_exception
 
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = (
+        db.query(models.User)
+        .options(joinedload(models.User.role))
+        .filter(models.User.id == user_id)
+        .first()
+    )
     if not user:
         raise credentials_exception
     return user
@@ -44,15 +50,16 @@ def get_current_active_user(
     return current_user
 
 
+def _role_name(user: models.User) -> str:
+    if user.role is None or not hasattr(user.role, "name"):
+        return ""
+    return str(user.role.name).upper()
+
+
 def require_manager_role(
     current_user: models.User = Depends(get_current_active_user),
 ):
-    role = current_user.role
-    if role is None or not hasattr(role, "name"):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-
-    role_name = str(role.name).upper()
-    if role_name not in MANAGER_ACCESS_ROLES:
+    if _role_name(current_user) not in MANAGER_ACCESS_ROLES:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
 
@@ -60,11 +67,6 @@ def require_manager_role(
 def require_admin_role(
     current_user: models.User = Depends(get_current_active_user),
 ):
-    role = current_user.role
-    if role is None or not hasattr(role, "name"):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-
-    role_name = str(role.name).upper()
-    if role_name not in ADMIN_ACCESS_ROLES:
+    if _role_name(current_user) not in ADMIN_ACCESS_ROLES:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user

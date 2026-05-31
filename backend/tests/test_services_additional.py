@@ -50,6 +50,13 @@ def test_lock_goal_sheet_submit_and_audit_log(db, mock_user, active_cycle):
 
 
 def test_lock_goal_sheet_approve_and_audit_log(db, mock_user, active_cycle):
+    manager = models.User(email="manager-approve@ex.com", hashed_password="fakehash")
+    db.add(manager)
+    db.commit()
+    db.refresh(manager)
+    db.add(models.OrgHierarchy(manager_id=manager.id, employee_id=mock_user.id))
+    db.commit()
+
     sheet = models.GoalSheet(
         user_id=mock_user.id, cycle_id=active_cycle.id, status="SUBMITTED"
     )
@@ -59,13 +66,13 @@ def test_lock_goal_sheet_approve_and_audit_log(db, mock_user, active_cycle):
     _add_goals_100(db, sheet, mock_user.id)
 
     result = goal_service.lock_goal_sheet(
-        db, sheet.id, action_user_id=mock_user.id, is_manager=True
+        db, sheet.id, action_user_id=manager.id, is_manager=True
     )
     assert result.status == "APPROVED"
 
     audit = (
         db.query(models.AuditLog)
-        .filter_by(user_id=mock_user.id, action="APPROVE_SHEET")
+        .filter_by(user_id=manager.id, action="APPROVE_SHEET")
         .first()
     )
     assert audit is not None
