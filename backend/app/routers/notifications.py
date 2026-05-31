@@ -10,7 +10,7 @@ from app import dependencies
 router = APIRouter()
 
 
-@router.get("/", response_model=schemas.NotificationListOut)
+@router.get("", response_model=schemas.NotificationListOut)
 def list_notifications(
     db: Session = Depends(get_db),
     current_user=Depends(dependencies.get_current_active_user),

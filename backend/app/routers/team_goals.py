@@ -11,7 +11,7 @@ from app.services import goal_service
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 def get_team_goals(
     managerId: Optional[int] = None,
     db: Session = Depends(get_db),

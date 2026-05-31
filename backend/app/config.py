@@ -35,6 +35,16 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "generate_a_secure_random_string_here"
     JWT_SECRET: Optional[str] = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def map_app_env(cls, data):
+        """Docker Compose sets APP_ENV; map it to ENVIRONMENT when not explicitly set."""
+        if isinstance(data, dict):
+            app_env = data.get("APP_ENV") or data.get("app_env")
+            if app_env and "ENVIRONMENT" not in data and "environment" not in data:
+                data["ENVIRONMENT"] = app_env
+        return data
+
     @model_validator(mode="after")
     def apply_jwt_secret(self):
         if self.JWT_SECRET:

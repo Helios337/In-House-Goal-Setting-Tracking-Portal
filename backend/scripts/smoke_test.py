@@ -2,7 +2,8 @@
 import os
 import sys
 
-os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+# Always use in-memory SQLite — inherited shell DATABASE_URL (e.g. Postgres) breaks connect_args.
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6379/0")
 os.environ.setdefault("ALLOW_INSECURE_SSO", "true")
 
@@ -149,10 +150,17 @@ def run():
     team = client.get("/api/v1/checkins/team", headers=m_headers)
     assert team.status_code == 200, team.text
 
-    audit = client.get("/api/v1/audit/logs", headers=headers)
+    ar = client.post(
+        "/api/v1/auth/sso",
+        json={"email": "admin@demo.example.com", "role_name": "ADMIN"},
+    )
+    assert ar.status_code == 200, ar.text
+    admin_headers = {"Authorization": f"Bearer {ar.json()['access_token']}"}
+
+    audit = client.get("/api/v1/audit/logs", headers=admin_headers)
     assert audit.status_code == 200, audit.text
 
-    dash = client.get("/api/v1/reports/dashboard", headers=headers)
+    dash = client.get("/api/v1/reports/dashboard", headers=admin_headers)
     assert dash.status_code == 200, dash.text
     assert "team_completion" in dash.json()
 
