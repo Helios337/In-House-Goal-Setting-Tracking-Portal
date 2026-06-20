@@ -33,7 +33,14 @@ export const goalSheetSummarySchema = z.object({
   cycle_name: z.string().optional(),
 });
 
-export const goalSheetDetailSchema = goalSheetSummarySchema.extend({
+/** Detail endpoints omit goal_count; summaries include it (see backend GoalSheetDetail). */
+export const goalSheetDetailSchema = z.object({
+  id: z.number(),
+  cycle_id: z.number(),
+  status: z.string(),
+  total_weightage: z.number(),
+  cycle_name: z.string().optional(),
+  goal_count: z.number().optional(),
   goals: z.array(apiGoalSchema),
 });
 

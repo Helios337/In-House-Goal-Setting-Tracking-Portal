@@ -29,6 +29,23 @@ def _escalate_pending_approvals(db: Session) -> int:
     )
     created = 0
     for sheet in sheets:
+        # Check submission timestamp in the AuditLog
+        submit_log = (
+            db.query(models.AuditLog)
+            .filter(
+                models.AuditLog.action == "SUBMIT_SHEET",
+                models.AuditLog.target_resource == f"GoalSheet:{sheet.id}",
+            )
+            .order_by(models.AuditLog.timestamp.desc())
+            .first()
+        )
+        if submit_log:
+            ts = submit_log.timestamp
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            if ts > cutoff:
+                continue
+
         existing = (
             db.query(models.EscalationRecord)
             .filter_by(
@@ -56,7 +73,7 @@ def _escalate_pending_approvals(db: Session) -> int:
             details=f"Goal sheet #{sheet.id} pending approval beyond {settings.ESCALATION_SHEET_HOURS}h",
         )
         db.add(escalation)
-        db.commit()
+        db.flush()
         created += 1
 
         notification = create_notification(
@@ -69,8 +86,14 @@ def _escalate_pending_approvals(db: Session) -> int:
             resource_id=sheet.id,
         )
         from app.services.notification_service import deliver_notification_task
+        import threading
 
-        deliver_notification_task(notification.id, manager.email)
+        # Deliver notification asynchronously in a background thread to prevent blocking
+        threading.Thread(
+            target=deliver_notification_task,
+            args=(notification.id, manager.email),
+            daemon=True,
+        ).start()
 
         publish(
             DomainEvent(
@@ -81,6 +104,8 @@ def _escalate_pending_approvals(db: Session) -> int:
                 payload={"rule": "sheet_approval_overdue"},
             )
         )
+    if created > 0:
+        db.commit()
     return created
 
 
@@ -127,7 +152,7 @@ def _escalate_incomplete_achievements(db: Session) -> int:
                 details=f"Quarterly achievement incomplete for goal #{goal.id}",
             )
             db.add(escalation)
-            db.commit()
+            db.flush()
             created += 1
 
             create_notification(
@@ -139,4 +164,6 @@ def _escalate_incomplete_achievements(db: Session) -> int:
                 resource_type="goal",
                 resource_id=goal.id,
             )
+    if created > 0:
+        db.commit()
     return created

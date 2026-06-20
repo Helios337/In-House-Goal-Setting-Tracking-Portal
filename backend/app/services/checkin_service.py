@@ -98,7 +98,7 @@ def get_employee_checkin_context(
                 "title": goal.title,
                 "uom_type": goal.uom_type,
                 "target_value": goal.target_value,
-                "actual_value": progress_score if goal.uom_type else progress_score,
+                "actual_value": progress_score,
                 "progress_score": progress_score,
                 "quarter": quarter,
             }

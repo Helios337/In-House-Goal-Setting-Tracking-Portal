@@ -110,12 +110,14 @@ async def sso_login(body: SSOLoginRequest, db: Session = Depends(get_db)):
         db.add(user)
         db.commit()
         db.refresh(user)
+        db.expire(user, ["role"])
     elif verified_by_token:
         # Only mutate roles when the identity provider attests to them
         role = _get_or_create_role(db, role_name)
         user.role_id = role.id
         db.commit()
         db.refresh(user)
+        db.expire(user, ["role"])
 
     return _issue_token(user)
 

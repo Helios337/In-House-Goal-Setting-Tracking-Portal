@@ -84,8 +84,8 @@ def _team_completion_stats(db: Session, cycle_id: int) -> list:
     return teams
 
 
-def build_csv_report(db: Session, manager_id: int) -> str:
-    """Generates a CSV string of all subordinate goals and progress."""
+def build_csv_report(db: Session, manager_id: int, cycle_id: int | None = None) -> str:
+    """Generates a CSV string of all subordinate goals and progress for a cycle."""
     subordinates = (
         db.query(models.User)
         .join(
@@ -100,14 +100,33 @@ def build_csv_report(db: Session, manager_id: int) -> str:
     writer = csv.writer(output)
     writer.writerow(["Employee Email", "Goal Title", "Weightage", "Status"])
 
-    for sub in subordinates:
-        for goal in sub.goals:
-            sheet = (
-                db.query(models.GoalSheet)
-                .filter(models.GoalSheet.id == goal.goal_sheet_id)
-                .first()
-            )
-            status = sheet.status if sheet else "UNKNOWN"
-            writer.writerow([sub.email, goal.title, goal.weightage, status])
+    if not subordinates:
+        return output.getvalue()
+
+    if cycle_id is None:
+        cycle = (
+            db.query(models.CheckinCycle)
+            .order_by(models.CheckinCycle.start_date.desc())
+            .first()
+        )
+        cycle_id = cycle.id if cycle else None
+
+    subordinate_ids = [sub.id for sub in subordinates]
+    sub_map = {sub.id: sub.email for sub in subordinates}
+
+    goals_query = (
+        db.query(models.Goal)
+        .join(models.GoalSheet, models.Goal.goal_sheet_id == models.GoalSheet.id)
+        .filter(models.GoalSheet.user_id.in_(subordinate_ids))
+    )
+    if cycle_id is not None:
+        goals_query = goals_query.filter(models.GoalSheet.cycle_id == cycle_id)
+
+    goals = goals_query.all()
+
+    for goal in goals:
+        email = sub_map.get(goal.owner_id, "UNKNOWN")
+        status = goal.goal_sheet.status if goal.goal_sheet else "UNKNOWN"
+        writer.writerow([email, goal.title, goal.weightage, status])
 
     return output.getvalue()
